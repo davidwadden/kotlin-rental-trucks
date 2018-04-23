@@ -1,4 +1,4 @@
-package io.pivotal.pal.data.kotlinrentaltrucks
+package io.pivotal.pal.data.rentaltruck
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

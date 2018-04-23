@@ -1,4 +1,4 @@
-package io.pivotal.pal.data.kotlinrentaltrucks
+package io.pivotal.pal.data.rentaltruck
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -7,10 +7,10 @@ import org.springframework.test.context.junit4.SpringRunner
 
 @RunWith(SpringRunner::class)
 @SpringBootTest
-class KotlinRentalTrucksApplicationTests {
+class KotlinRentalTrucksApplicationTest {
 
-	@Test
-	fun contextLoads() {
-	}
+    @Test
+    fun contextLoads() {
+    }
 
 }
