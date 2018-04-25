@@ -1,26 +1,24 @@
 package io.pivotal.pal.data.framework.event
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SyncEventTest {
 
-    private lateinit var publisher: DefaultSyncEventPublisher<String, String>
-    private lateinit var handler: Handler
-    private lateinit var subscriber: SyncEventSubscriberAdapter<String, String>
+    private val publisher: DefaultSyncEventPublisher<String, String> = DefaultSyncEventPublisher(EVENT_NAME)
+    private val handler: Handler = Handler()
+    private val subscriber: SyncEventSubscriberAdapter<String, String> = SyncEventSubscriberAdapter(EVENT_NAME, handler)
 
-    @Before
+    @BeforeEach
     fun setUp() {
-        publisher = DefaultSyncEventPublisher(EVENT_NAME)
-        handler = Handler()
-        subscriber = SyncEventSubscriberAdapter(EVENT_NAME, handler)
-
         handler.data = null
     }
 
     @Test
-    fun basicTest() {
+    fun `should publish a message and return with return value`() {
         val someData = "some-data"
         val result = publisher.publish(someData)
 

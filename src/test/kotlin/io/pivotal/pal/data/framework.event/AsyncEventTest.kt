@@ -3,26 +3,25 @@ package io.pivotal.pal.data.framework.event
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
 import org.awaitility.Duration.ONE_SECOND
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AsyncEventTest {
 
     private var data: String? = null
 
-    private lateinit var publisher: DefaultAsyncEventPublisher<String>
-    private lateinit var subscriber: AsyncEventSubscriberAdapter<String>
+    private val publisher: DefaultAsyncEventPublisher<String> = DefaultAsyncEventPublisher(EVENT_NAME)
+    private val subscriber: AsyncEventSubscriberAdapter<String> = AsyncEventSubscriberAdapter(EVENT_NAME, Handler())
 
-    @Before
+    @BeforeEach
     fun setUp() {
-        publisher = DefaultAsyncEventPublisher(EVENT_NAME)
-        subscriber = AsyncEventSubscriberAdapter(EVENT_NAME, Handler())
-
         data = null
     }
 
     @Test
-    fun basicTest() {
+    fun `should publish an event asynchronously to the subscriber`() {
         val someData = "some-data"
         publisher.publish(someData)
 
