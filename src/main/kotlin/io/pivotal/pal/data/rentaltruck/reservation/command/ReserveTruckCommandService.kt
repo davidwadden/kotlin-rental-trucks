@@ -3,12 +3,13 @@ package io.pivotal.pal.data.rentaltruck.reservation.command
 import io.pivotal.pal.data.framework.event.AsyncEventPublisher
 import io.pivotal.pal.data.rentaltruck.event.ReservationRequestedEvent
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
 import java.time.LocalDate
 
 @Service
 class ReserveTruckCommandService(val eventPublisher: AsyncEventPublisher<ReservationRequestedEvent>) {
 
-    fun reserveTruck(): String {
+    fun reserveTruck(): Mono<String> {
 
         // generate confirmation number
 
@@ -21,7 +22,7 @@ class ReserveTruckCommandService(val eventPublisher: AsyncEventPublisher<Reserva
         )
         eventPublisher.publish(event)
 
-        return "stubbed-confirmation-number"
+        return Mono.just("stubbed-confirmation-number")
     }
 
 }
