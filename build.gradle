@@ -2,7 +2,6 @@ buildscript {
     ext {
         kotlinVersion = '1.2.31'
         springBootVersion = '2.0.1.RELEASE'
-        awaitilityVersion = '3.1.0'
     }
     repositories {
         mavenCentral()
@@ -44,43 +43,44 @@ repositories {
 
 ext {
     springCloudVersion = 'Finchley.M9'
+    kafkaStreamsVersion = '1.0.1'
+    awaitilityVersion = '3.1.0'
+    junit4Version = '4.12'
+    junitVintageVersion = '5.1.1'
+    junitPlatformVersion = '1.1.1'
+    junitJupiterVersion = '5.1.1'
 }
 
-ext.junit4Version        = '4.12'
-ext.junitVintageVersion  = '5.1.1'
-ext.junitPlatformVersion = '1.1.1'
-ext.junitJupiterVersion  = '5.1.1'
-
 dependencies {
-    compile('org.springframework.boot:spring-boot-starter-data-cassandra-reactive')
-    compile('org.springframework.boot:spring-boot-starter-data-redis-reactive')
-    compile('org.springframework.boot:spring-boot-starter-webflux')
-    compile('com.fasterxml.jackson.module:jackson-module-kotlin')
-    compile('org.apache.kafka:kafka-streams:1.0.1')
-    compile('org.springframework.cloud:spring-cloud-stream-binder-kafka')
-    compile('org.springframework.cloud:spring-cloud-stream-binder-kafka-streams')
-    compile('org.springframework.cloud:spring-cloud-stream-reactive')
-    compile('org.springframework.kafka:spring-kafka')
-    compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    compile("org.jetbrains.kotlin:kotlin-reflect")
+    implementation('org.springframework.boot:spring-boot-starter-data-cassandra-reactive')
+    implementation('org.springframework.boot:spring-boot-starter-data-redis-reactive')
+    implementation('org.springframework.boot:spring-boot-starter-webflux')
+    implementation('com.fasterxml.jackson.module:jackson-module-kotlin')
+    implementation('org.apache.kafka:kafka-streams:1.0.1')
+    implementation('org.springframework.cloud:spring-cloud-stream-binder-kafka')
+    implementation('org.springframework.cloud:spring-cloud-stream-binder-kafka-streams')
+    implementation('org.springframework.cloud:spring-cloud-stream-reactive')
+    implementation('org.springframework.kafka:spring-kafka')
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-    runtime('org.springframework.boot:spring-boot-devtools')
+    runtimeOnly('org.springframework.boot:spring-boot-devtools')
 
-    testCompile('org.springframework.boot:spring-boot-starter-test')
-    testCompile('io.projectreactor:reactor-test')
-    testCompile('org.springframework.cloud:spring-cloud-stream-test-support')
-    testCompile('org.awaitility:awaitility')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation('io.projectreactor:reactor-test')
+    testImplementation('org.springframework.cloud:spring-cloud-stream-test-support')
+    testImplementation('org.awaitility:awaitility')
 
     // JUnit Jupiter API and TestEngine implementation
-    testCompile('org.junit.jupiter:junit-jupiter-api')
-    testRuntime('org.junit.jupiter:junit-jupiter-engine')
+    testImplementation('org.junit.jupiter:junit-jupiter-api')
+    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine')
 
-    testCompile('junit:junit')
-    testRuntime('org.junit.vintage:junit-vintage-engine') {
+    testImplementation('junit:junit')
+    testRuntimeOnly('org.junit.vintage:junit-vintage-engine') {
         because 'allows JUnit 3 and JUnit 4 tests to run'
     }
 
-    testRuntime('org.junit.platform:junit-platform-launcher') {
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher') {
         because 'allows tests to run from IDEs that bundle older version of launcher'
     }
 }
@@ -89,6 +89,7 @@ dependencies {
     compile "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
 
     constraints {
+        compile "org.apache.kafka:kafka-streams:${kafkaStreamsVersion}"
         compile "org.awaitility:awaitility:${awaitilityVersion}"
         compile "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
         compile "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
