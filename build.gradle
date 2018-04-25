@@ -2,6 +2,7 @@ buildscript {
     ext {
         kotlinVersion = '1.2.31'
         springBootVersion = '2.0.1.RELEASE'
+        awaitilityVersion = '3.1.0'
     }
     repositories {
         mavenCentral()
@@ -57,10 +58,13 @@ dependencies {
     compile('org.springframework.kafka:spring-kafka')
     compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     compile("org.jetbrains.kotlin:kotlin-reflect")
+
     runtime('org.springframework.boot:spring-boot-devtools')
+
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('io.projectreactor:reactor-test')
     testCompile('org.springframework.cloud:spring-cloud-stream-test-support')
+    testCompile("org.awaitility:awaitility:${awaitilityVersion}")
 }
 
 dependencyManagement {
