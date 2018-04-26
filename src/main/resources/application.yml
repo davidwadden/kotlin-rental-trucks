@@ -36,5 +36,6 @@ spring:
       ddl-auto: create-drop
       naming:
         implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl
-    database-platform: org.hibernate.dialect.PostgreSQL95Dialect
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQL94Dialect
     show-sql: false
