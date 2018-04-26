@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AsyncEventTest {
+internal class AsyncEventTest {
 
     private var data: String? = null
 

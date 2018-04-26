@@ -37,6 +37,7 @@ compileTestKotlin {
 
 repositories {
     mavenCentral()
+    jcenter()
     maven { url "https://repo.spring.io/milestone" }
 }
 
@@ -45,6 +46,8 @@ ext {
     springCloudVersion = 'Finchley.M9'
     kafkaStreamsVersion = '1.0.1'
     awaitilityVersion = '3.1.0'
+    mockitoKotlinVersion = '2.0.0-alpha03'
+    atriumVersion = '0.6.0'
     junit4Version = '4.12'
     junitVintageVersion = '5.1.1'
     junitPlatformVersion = '1.1.1'
@@ -56,7 +59,7 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-data-redis-reactive')
     implementation('org.springframework.boot:spring-boot-starter-webflux')
     implementation('com.fasterxml.jackson.module:jackson-module-kotlin')
-    implementation('org.apache.kafka:kafka-streams:1.0.1')
+    implementation('org.apache.kafka:kafka-streams')
     implementation('org.springframework.cloud:spring-cloud-stream-binder-kafka')
     implementation('org.springframework.cloud:spring-cloud-stream-binder-kafka-streams')
     implementation('org.springframework.cloud:spring-cloud-stream-reactive')
@@ -70,6 +73,9 @@ dependencies {
     testImplementation('io.projectreactor:reactor-test')
     testImplementation('org.springframework.cloud:spring-cloud-stream-test-support')
     testImplementation('org.awaitility:awaitility')
+    testImplementation('com.nhaarman.mockitokotlin2:mockito-kotlin')
+    testImplementation('ch.tutteli:atrium-cc-en_UK-robstoll')
+    testImplementation('ch.tutteli:atrium-verbs')
 
     // JUnit Jupiter API and TestEngine implementation
     testImplementation('org.junit.jupiter:junit-jupiter-api')
@@ -91,6 +97,9 @@ dependencies {
     constraints {
         compile "org.apache.kafka:kafka-streams:${kafkaStreamsVersion}"
         compile "org.awaitility:awaitility:${awaitilityVersion}"
+        compile "com.nhaarman.mockitokotlin2:mockito-kotlin:${mockitoKotlinVersion}"
+        compile "ch.tutteli:atrium-cc-en_UK-robstoll:${atriumVersion}"
+        compile "ch.tutteli:atrium-verbs:${atriumVersion}"
         compile "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
         compile "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
         compile "org.junit.vintage:junit-vintage-engine:${junitVintageVersion}"

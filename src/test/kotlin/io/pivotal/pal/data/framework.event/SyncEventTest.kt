@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SyncEventTest {
+internal class SyncEventTest {
 
     private val publisher: DefaultSyncEventPublisher<String, String> = DefaultSyncEventPublisher(EVENT_NAME)
     private val handler: Handler = Handler()
