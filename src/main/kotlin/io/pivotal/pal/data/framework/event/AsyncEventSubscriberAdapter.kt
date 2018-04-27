@@ -11,11 +11,19 @@ class AsyncEventSubscriberAdapter<T>(
         private val errorHandler: AsyncEventHandler<T>?,
         private val maxRetryCount: Int,
         private val initialRetryWaitTime: Long,
-        private val retryWaitTimeMultiplier: Int
+        private val retryWaitTimeMultiplier: Int,
+        private val recoverableExceptions: Set<Class<*>>?
 ) : AsyncEventChannel(eventName), SmartLifecycle {
+
+    constructor(eventName: String, handler: AsyncEventHandler<T>) :
+            this(eventName, handler, null, 0, 0, 0, null)
+
+    constructor(eventName: String, handler: AsyncEventHandler<T>, errorHandler: AsyncEventHandler<T>) :
+            this(eventName, handler, errorHandler, 0, 0, 0, null)
 
     private val queue = LinkedBlockingQueue<T>()
     private var running = false
+    private val lock = java.lang.Object()
 
     init {
 
@@ -49,51 +57,67 @@ class AsyncEventSubscriberAdapter<T>(
         return 0
     }
 
-    private inner class Processor internal constructor() : Thread() {
+    private fun processEntry() {
+        var data: T? = null
 
-        private val lock = java.lang.Object()
+        try {
+            data = queue.take()
+            var waitTime = initialRetryWaitTime
+
+            for (retryCount in 0..maxRetryCount) {
+                logger.debug("calling event handler={}: data={}", handler, data)
+
+                try {
+                    handler.onEvent(data)
+                    break
+                } catch (e: Exception) {
+                    waitTime = handleException(e, waitTime, retryCount)
+                }
+
+            }
+        } catch (x: Exception) {
+            logger.error("exception thrown in event processor thread: x={}, data={}", x.toString(), data, x)
+
+            if (errorHandler != null && data != null) {
+                errorHandler.onEvent(data)
+            }
+        }
+
+    }
+
+    @Throws(Exception::class)
+    private fun handleException(e: Exception, waitTime: Long, retryCount: Int): Long {
+        var waitTime = waitTime
+        if (recoverableExceptions != null &&
+                !recoverableExceptions.isEmpty() &&
+                !recoverableExceptions.contains(e.javaClass)) {
+            // if recoverable exceptions specified and this exception is not recoverable, rethrow
+            throw e
+        }
+
+        if (retryCount < maxRetryCount) {
+            try {
+                synchronized(lock) {
+                    lock.wait(waitTime)
+                }
+
+                waitTime *= retryWaitTimeMultiplier.toLong()
+            } catch (t: InterruptedException) {
+                // no-op
+            }
+
+            return waitTime
+        } else {
+            throw e
+        }
+    }
+
+    private inner class Processor internal constructor() : Thread() {
 
         override fun run() {
 
             while (running) {
-                var data: T? = null
-
-                try {
-                    data = queue.take()
-                    var waitTime = initialRetryWaitTime
-
-                    for (i in 0..maxRetryCount) {
-                        logger.debug("calling event handler={}: data={}", handler, data)
-
-                        try {
-                            handler.onEvent(data)
-                            break
-                        } catch (e: Exception) {
-                            if (i < maxRetryCount) {
-                                try {
-                                    synchronized(lock) {
-                                        lock.wait(waitTime)
-                                    }
-
-                                    waitTime *= retryWaitTimeMultiplier.toLong()
-                                } catch (t: InterruptedException) {
-                                    // no-op
-                                }
-
-                            } else {
-                                throw e
-                            }
-                        }
-
-                    }
-                } catch (x: Exception) {
-                    logger.error("exception thrown in event processor thread: x={}, data={}", x.toString(), data, x)
-
-                    if (errorHandler != null && data != null) {
-                        errorHandler.onEvent(data)
-                    }
-                }
-
+                processEntry()
             }
         }
     }

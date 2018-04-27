@@ -7,8 +7,10 @@ import org.awaitility.Awaitility.await
 import org.awaitility.Duration.ONE_SECOND
 import org.awaitility.Duration.TWO_SECONDS
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class AsyncEventTest {
@@ -25,7 +27,7 @@ internal class AsyncEventTest {
     @Test
     fun `publishes an event asynchronously to the subscriber`() {
         val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
-        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME, Handler(), null, 0, 0, 0)
+        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME, Handler())
         subscriber.start()
 
         val someData = "some-data"
@@ -39,9 +41,7 @@ internal class AsyncEventTest {
     @Test
     fun `invokes the error handler upon error without retry`() {
         val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
-        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
-                ExceptionThrowingHandler(1),
-                ErrorHandler(), 0, 0, 0)
+        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME, ExceptionThrowingHandler(1), ErrorHandler())
         subscriber.start()
 
         val someData = "some-data"
@@ -59,7 +59,8 @@ internal class AsyncEventTest {
     fun `succeeds without error handler with retry enabled`() {
         val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
         val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
-                ExceptionThrowingHandler(1), null, 1, 100, 2)
+                ExceptionThrowingHandler(1),
+                null, 1, 100, 2, null)
         subscriber.start()
 
         val someData = "some-data"
@@ -74,10 +75,51 @@ internal class AsyncEventTest {
     }
 
     @Test
+    fun `succeeds without error handler with retry and recoverable exceptions`() {
+        val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
+        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
+                ExceptionThrowingHandler(1), null, 1, 100,
+                2, HashSet(listOf(IllegalStateException::class.java)))
+        subscriber.start()
+
+        val someData = "some-data"
+        publisher.publish(someData)
+
+        await()
+                .atMost(TWO_SECONDS)
+                .untilAsserted {
+                    assertThat(errorData).isNull()
+                    assertThat(data!!).toBe(someData)
+                }
+    }
+
+    @Disabled
+    @Test
+    fun `errors without handler with retry and non-recoverable exceptions`() {
+        val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
+        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
+                ExceptionThrowingHandler(1),
+                null, 1, 100,
+                2, HashSet(listOf(IllegalStateException::class.java)))
+        subscriber.start()
+
+        val someData = "some-data"
+        publisher.publish(someData)
+
+        await()
+                .atMost(TWO_SECONDS)
+                .untilAsserted {
+                    assertThat(errorData).isNull()
+                    assertThat(data).isNull()
+                }
+    }
+
+    @Test
     fun `succeeds without error handler when retry exceeded`() {
         val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
         val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
-                ExceptionThrowingHandler(2), null, 1, 100, 2)
+                ExceptionThrowingHandler(2),
+                null, 1, 100, 2, null)
         subscriber.start()
 
         val someData = "some-data"
@@ -95,7 +137,7 @@ internal class AsyncEventTest {
     fun `returns error without error handler or retry config`() {
         val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
         val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
-                ExceptionThrowingHandler(1), null, 0, 0, 0)
+                ExceptionThrowingHandler(1), null, 0, 0, 0, null)
         subscriber.start()
 
         val someData = "some-data"
