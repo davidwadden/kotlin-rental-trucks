@@ -1,12 +1,14 @@
 package io.pivotal.pal.data.framework.event
 
-import org.assertj.core.api.Assertions.assertThat
+import ch.tutteli.atrium.api.cc.en_UK.isNull
+import ch.tutteli.atrium.api.cc.en_UK.toBe
+import ch.tutteli.atrium.verbs.assertthat.assertThat
 import org.awaitility.Awaitility.await
 import org.awaitility.Duration.ONE_SECOND
+import org.awaitility.Duration.TWO_SECONDS
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class AsyncEventTest {
@@ -20,24 +22,25 @@ internal class AsyncEventTest {
         errorData = null
     }
 
-
     @Test
     fun `publishes an event asynchronously to the subscriber`() {
         val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
-        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME, Handler())
+        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME, Handler(), null, 0, 0, 0)
 
         val someData = "some-data"
         publisher.publish(someData)
 
         await()
                 .atMost(ONE_SECOND)
-                .untilAsserted { assertThat(data).isEqualTo(someData) }
+                .untilAsserted { assertThat(data!!).toBe(someData) }
     }
 
     @Test
-    fun `invokes the error handler upon error`() {
+    fun `invokes the error handler upon error without retry`() {
         val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
-        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME, ExceptionThrowingHandler(), ErrorHandler())
+        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
+                ExceptionThrowingHandler(1),
+                ErrorHandler(), 0, 0, 0)
 
         val someData = "some-data"
         publisher.publish(someData)
@@ -45,15 +48,50 @@ internal class AsyncEventTest {
         await()
                 .atMost(ONE_SECOND)
                 .untilAsserted {
-                    assertThat(errorData).isEqualTo(someData)
+                    assertThat(errorData!!).toBe(someData)
                     assertThat(data).isNull()
                 }
     }
 
     @Test
-    fun `handles an error gracefully without an error handler`() {
+    fun `succeeds without error handler with retry enabled`() {
         val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
-        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME, ExceptionThrowingHandler())
+        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
+                ExceptionThrowingHandler(1), null, 1, 100, 2)
+
+        val someData = "some-data"
+        publisher.publish(someData)
+
+        await()
+                .atMost(TWO_SECONDS)
+                .untilAsserted {
+                    assertThat(errorData).isNull()
+                    assertThat(data!!).toBe(someData)
+                }
+    }
+
+    @Test
+    fun `succeeds without error handler when retry exceeded`() {
+        val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
+        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
+                ExceptionThrowingHandler(2), null, 1, 100, 2)
+
+        val someData = "some-data"
+        publisher.publish(someData)
+
+        await()
+                .atMost(TWO_SECONDS)
+                .untilAsserted {
+                    assertThat(errorData).isNull()
+                    assertThat(data).isNull()
+                }
+    }
+
+    @Test
+    fun `returns error without error handler or retry config`() {
+        val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
+        val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
+                ExceptionThrowingHandler(1), null, 0, 0, 0)
 
         val someData = "some-data"
         publisher.publish(someData)
@@ -80,10 +118,15 @@ internal class AsyncEventTest {
         }
     }
 
-    private inner class ExceptionThrowingHandler : AsyncEventHandler<String> {
+    private inner class ExceptionThrowingHandler(internal var maxCount: Int) : AsyncEventHandler<String> {
+        internal var count = 0
 
         override fun onEvent(data: String) {
-            throw IllegalArgumentException("data = $data")
+            if (count++ < maxCount) {
+                throw IllegalArgumentException("data = $data")
+            } else {
+                this@AsyncEventTest.data = data
+            }
         }
     }
 
