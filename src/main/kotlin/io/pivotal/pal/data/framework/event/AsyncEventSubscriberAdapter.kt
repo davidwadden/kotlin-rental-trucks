@@ -1,6 +1,7 @@
 package io.pivotal.pal.data.framework.event
 
 import org.slf4j.LoggerFactory
+import org.springframework.context.SmartLifecycle
 import org.springframework.util.Assert
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -11,16 +12,41 @@ class AsyncEventSubscriberAdapter<T>(
         private val maxRetryCount: Int,
         private val initialRetryWaitTime: Long,
         private val retryWaitTimeMultiplier: Int
-) : AsyncEventChannel(eventName) {
+) : AsyncEventChannel(eventName), SmartLifecycle {
 
     private val queue = LinkedBlockingQueue<T>()
+    private var running = false
 
     init {
 
         Assert.isTrue(maxRetryCount >= 0, "Invalid maxRetryCount: $maxRetryCount")
 
         super.addQueue(queue)
+    }
+
+    override fun isAutoStartup(): Boolean {
+        return true
+    }
+
+    override fun stop(callback: Runnable) {
+        running = false
+    }
+
+    override fun start() {
+        running = true
         Processor().start()
+    }
+
+    override fun stop() {
+        running = false
+    }
+
+    override fun isRunning(): Boolean {
+        return running
+    }
+
+    override fun getPhase(): Int {
+        return 0
     }
 
     private inner class Processor internal constructor() : Thread() {
@@ -29,7 +55,7 @@ class AsyncEventSubscriberAdapter<T>(
 
         override fun run() {
 
-            while (true) {
+            while (running) {
                 var data: T? = null
 
                 try {

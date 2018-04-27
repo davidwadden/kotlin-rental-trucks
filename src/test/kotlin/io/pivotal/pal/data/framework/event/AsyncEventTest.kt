@@ -26,6 +26,7 @@ internal class AsyncEventTest {
     fun `publishes an event asynchronously to the subscriber`() {
         val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
         val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME, Handler(), null, 0, 0, 0)
+        subscriber.start()
 
         val someData = "some-data"
         publisher.publish(someData)
@@ -41,6 +42,7 @@ internal class AsyncEventTest {
         val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
                 ExceptionThrowingHandler(1),
                 ErrorHandler(), 0, 0, 0)
+        subscriber.start()
 
         val someData = "some-data"
         publisher.publish(someData)
@@ -58,6 +60,7 @@ internal class AsyncEventTest {
         val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
         val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
                 ExceptionThrowingHandler(1), null, 1, 100, 2)
+        subscriber.start()
 
         val someData = "some-data"
         publisher.publish(someData)
@@ -75,6 +78,7 @@ internal class AsyncEventTest {
         val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
         val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
                 ExceptionThrowingHandler(2), null, 1, 100, 2)
+        subscriber.start()
 
         val someData = "some-data"
         publisher.publish(someData)
@@ -92,6 +96,7 @@ internal class AsyncEventTest {
         val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
         val subscriber = AsyncEventSubscriberAdapter(EVENT_NAME,
                 ExceptionThrowingHandler(1), null, 0, 0, 0)
+        subscriber.start()
 
         val someData = "some-data"
         publisher.publish(someData)
