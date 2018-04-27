@@ -2,13 +2,42 @@ package io.pivotal.pal.data.framework.event
 
 import ch.tutteli.atrium.api.cc.en_UK.isNull
 import ch.tutteli.atrium.api.cc.en_UK.toBe
+import ch.tutteli.atrium.api.cc.en_UK.toThrow
 import ch.tutteli.atrium.verbs.assertthat.assertThat
+import ch.tutteli.atrium.verbs.expect.expect
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class SyncEventTest {
+
+    @Test
+    fun `errors when maxRetryCount is invalid`() {
+        expect {
+            SyncEventSubscriberAdapter(EVENT_NAME,
+                    ExceptionThrowingHandler(1),
+                    null, -1, 100, 2, null)
+        }.toThrow<IllegalArgumentException>()
+    }
+
+    @Test
+    fun `errors when retry waitTime is invalid`() {
+        expect {
+            SyncEventSubscriberAdapter(EVENT_NAME,
+                    ExceptionThrowingHandler(1),
+                    null, 1, 10, 2, null)
+        }.toThrow<IllegalArgumentException>()
+    }
+
+    @Test
+    fun `errors when retryWaitTimeMultiplier is invalid`() {
+        expect {
+            SyncEventSubscriberAdapter(EVENT_NAME,
+                    ExceptionThrowingHandler(1),
+                    null, 1, 100, 0, null)
+        }.toThrow<IllegalArgumentException>()
+    }
 
     @Test
     fun `succeeds without retry`() {

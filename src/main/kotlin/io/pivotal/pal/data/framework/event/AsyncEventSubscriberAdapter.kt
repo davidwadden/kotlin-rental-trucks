@@ -26,8 +26,15 @@ class AsyncEventSubscriberAdapter<T>(
     private val lock = java.lang.Object()
 
     init {
+        Assert.hasText(eventName, "Event name must be specified")
+        Assert.notNull(handler, "Handler must be specified")
 
-        Assert.isTrue(maxRetryCount >= 0, "Invalid maxRetryCount: $maxRetryCount")
+        Assert.isTrue(maxRetryCount >= 0, "Invalid maxRetryCount, must be >=0: $maxRetryCount")
+
+        if (maxRetryCount > 0) {
+            Assert.isTrue(initialRetryWaitTime >= 100, "Invalid initialRetryWaitTime, must be >=100: $initialRetryWaitTime")
+            Assert.isTrue(retryWaitTimeMultiplier >= 1, "Invalid retryWaitTimeMultiplier, must be >=1: $retryWaitTimeMultiplier")
+        }
 
         super.addQueue(queue)
     }

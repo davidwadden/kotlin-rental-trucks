@@ -2,7 +2,9 @@ package io.pivotal.pal.data.framework.event
 
 import ch.tutteli.atrium.api.cc.en_UK.isNull
 import ch.tutteli.atrium.api.cc.en_UK.toBe
+import ch.tutteli.atrium.api.cc.en_UK.toThrow
 import ch.tutteli.atrium.verbs.assertthat.assertThat
+import ch.tutteli.atrium.verbs.expect.expect
 import org.awaitility.Awaitility.await
 import org.awaitility.Duration.ONE_SECOND
 import org.awaitility.Duration.TWO_SECONDS
@@ -22,6 +24,30 @@ internal class AsyncEventTest {
     fun setUp() {
         data = null
         errorData = null
+    }
+
+    @Test
+    fun `errors when maxRetryCount is invalid`() {
+        expect {
+            AsyncEventSubscriberAdapter(EVENT_NAME,
+                    ExceptionThrowingHandler(1), null, -1, 100, 2, null)
+        }.toThrow<IllegalArgumentException>()
+    }
+
+    @Test
+    fun `errors when retry waitTime is invalid`() {
+        expect {
+            AsyncEventSubscriberAdapter(EVENT_NAME,
+                    ExceptionThrowingHandler(1), null, 1, 10, 2, null)
+        }.toThrow<IllegalArgumentException>()
+    }
+
+    @Test
+    fun `errors when retryWaitTimeMultiplier is invalid`() {
+        expect {
+            AsyncEventSubscriberAdapter(EVENT_NAME,
+                    ExceptionThrowingHandler(1), null, 1, 100, 0, null)
+        }.toThrow<IllegalArgumentException>()
     }
 
     @Test
@@ -74,6 +100,7 @@ internal class AsyncEventTest {
                 }
     }
 
+    @Disabled
     @Test
     fun `succeeds without error handler with retry and recoverable exceptions`() {
         val publisher = DefaultAsyncEventPublisher<String>(EVENT_NAME)
