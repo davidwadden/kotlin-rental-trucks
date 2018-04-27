@@ -45,8 +45,6 @@ repositories {
 
 
 ext {
-    springCloudVersion = 'Finchley.M9'
-    kafkaStreamsVersion = '1.0.1'
     awaitilityVersion = '3.1.0'
     mockitoKotlinVersion = '2.0.0-alpha03'
     atriumVersion = '0.6.0'
@@ -59,13 +57,7 @@ ext {
 dependencies {
     implementation('org.springframework.boot:spring-boot-starter-webflux')
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
-    implementation('org.springframework.boot:spring-boot-starter-data-cassandra-reactive')
-    implementation('org.springframework.boot:spring-boot-starter-data-redis-reactive')
     implementation('com.fasterxml.jackson.module:jackson-module-kotlin')
-    implementation('org.apache.kafka:kafka-streams')
-    implementation('org.springframework.cloud:spring-cloud-stream-binder-kafka')
-    implementation('org.springframework.cloud:spring-cloud-stream-binder-kafka-streams')
-    implementation('org.springframework.cloud:spring-cloud-stream-reactive')
     implementation('org.springframework.kafka:spring-kafka')
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -78,7 +70,6 @@ dependencies {
 
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('io.projectreactor:reactor-test')
-    testImplementation('org.springframework.cloud:spring-cloud-stream-test-support')
     testImplementation('org.awaitility:awaitility')
     testImplementation('com.nhaarman.mockitokotlin2:mockito-kotlin')
     testImplementation('ch.tutteli:atrium-cc-en_UK-robstoll')
@@ -99,10 +90,7 @@ dependencies {
 }
 
 dependencies {
-    compile "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-
     constraints {
-        compile "org.apache.kafka:kafka-streams:${kafkaStreamsVersion}"
         compile "org.awaitility:awaitility:${awaitilityVersion}"
         compile "com.nhaarman.mockitokotlin2:mockito-kotlin:${mockitoKotlinVersion}"
         compile "ch.tutteli:atrium-cc-en_UK-robstoll:${atriumVersion}"
