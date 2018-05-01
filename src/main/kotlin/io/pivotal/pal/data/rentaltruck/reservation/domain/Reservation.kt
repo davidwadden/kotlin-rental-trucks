@@ -1,5 +1,6 @@
 package io.pivotal.pal.data.rentaltruck.reservation.domain
 
+import org.springframework.data.repository.CrudRepository
 import java.time.LocalDate
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -31,3 +32,5 @@ data class Reservation(
         status = "FINALIZED"
     }
 }
+
+interface ReservationRepository : CrudRepository<Reservation, String>
