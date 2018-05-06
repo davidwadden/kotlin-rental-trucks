@@ -1,7 +1,6 @@
 package io.pivotal.pal.data.rentaltruck.reservation.command
 
-import io.pivotal.pal.data.rentaltruck.reservation.domain.Rental
-import io.pivotal.pal.data.rentaltruck.reservation.domain.RentalStatus
+import io.pivotal.pal.data.rentaltruck.generateRandomString
 import io.pivotal.pal.data.rentaltruck.reservation.domain.Reservation
 import io.pivotal.pal.data.rentaltruck.reservation.domain.ReservationRepository
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -12,7 +11,6 @@ import java.net.URI
 import java.time.Duration
 
 internal data class CreateRentalCommandDto(
-        val rentalId: String,
         val confirmationNumber: String,
         val truckId: String
 )
@@ -22,6 +20,8 @@ class CreateRentalCommandHandler(
 ) {
 
     fun create(req: ServerRequest): Mono<ServerResponse> {
+
+        val rentalId = generateRandomString(5)
 
         return req
                 // deserialize the commandDto off the request
@@ -39,7 +39,7 @@ class CreateRentalCommandHandler(
                     return@map tuple
                 }
                 // create immutable copy of reservation with 1:1 rental added
-                .map { tuple -> tuple.t2.createRental(tuple.t1.rentalId, tuple.t1.truckId) }
+                .map { tuple -> tuple.t2.createRental(rentalId, tuple.t1.truckId) }
                 // save updated reservation aggregate root to repository
                 .map { reservationRepository.save(it) }
                 .delayElement(Duration.ofSeconds(2L))

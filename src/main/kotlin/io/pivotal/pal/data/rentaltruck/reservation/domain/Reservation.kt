@@ -1,5 +1,6 @@
 package io.pivotal.pal.data.rentaltruck.reservation.domain
 
+import io.pivotal.pal.data.rentaltruck.generateRandomString
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
@@ -82,19 +83,25 @@ data class Reservation private constructor(
                 // set status to confirmed
                 reservationStatus = ReservationStatus.CONFIRMED,
                 // generate confirmation number
-                confirmationNumber = generateConfirmationNumber(10)
+                confirmationNumber = generateRandomString(6)
         )
     }
 
     // TODO: Generate rentalId instead of asking caller to provide
     fun createRental(rentalId: String, truckId: String): Reservation {
         if (rental != null) {
-            throw IllegalStateException("Reservation must not already have rental to creat rental")
+            throw IllegalStateException("Rental already exists.  Reservation must not have rental")
+        }
+        if (confirmationNumber == null) {
+            throw IllegalStateException("Confirmation number should not be null.")
+        }
+        if (reservationStatus != ReservationStatus.CONFIRMED) {
+            throw IllegalStateException("Expected reservation status to be Confirmed.  status=$reservationStatus")
         }
 
         val newRental = Rental(
                 rentalId = rentalId,
-                confirmationNumber = confirmationNumber!!, // FIXME
+                confirmationNumber = confirmationNumber,
                 status = RentalStatus.PENDING,
                 reservation = this,
                 truckId = truckId,
@@ -136,13 +143,4 @@ enum class ReservationStatus {
 
 interface ReservationRepository : CrudRepository<Reservation, String> {
     fun findByConfirmationNumber(confirmationNumber: String): Reservation?
-}
-
-private fun generateConfirmationNumber(outputLength: Long): String {
-    val source = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    return Random()
-            .ints(outputLength, 0, source.length)
-            .asSequence()
-            .map(source::get)
-            .joinToString("")
 }
