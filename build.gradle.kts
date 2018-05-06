@@ -7,6 +7,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.jpa") version "1.2.41"
     id("io.spring.dependency-management") version "1.0.5.RELEASE"
 
+    kotlin("jvm") version "1.2.41"
     java
     eclipse
 }
@@ -27,6 +28,7 @@ repositories {
     maven(url = "https://repo.spring.io/milestone")
 }
 
+val kotlinVersion = "1.2.41"
 val awaitilityVersion = "3.1.0"
 val mockitoKotlinVersion = "2.0.0-alpha03"
 val atriumVersion = "0.6.0"
@@ -36,12 +38,13 @@ val junitPlatformVersion = "1.1.1"
 val junitJupiterVersion = "5.1.1"
 
 dependencies {
+    implementation(kotlin("stdlib-jdk8:$kotlinVersion"))
+    implementation(kotlin("reflect:$kotlinVersion"))
+
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.springframework.kafka:spring-kafka")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.hibernate:hibernate-java8")
 
     runtimeOnly("org.hsqldb:hsqldb")
@@ -68,19 +71,24 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher") {
         because("allows tests to run from IDEs that bundle older version of launcher")
     }
-}
 
-dependencies {
     constraints {
-        compile("org.awaitility:awaitility:$awaitilityVersion")
-        compile("com.nhaarman.mockitokotlin2:mockito-kotlin:$mockitoKotlinVersion")
-        compile("ch.tutteli:atrium-cc-en_UK-robstoll:$atriumVersion")
-        compile("ch.tutteli:atrium-verbs:$atriumVersion")
-        compile("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-        compile("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
-        compile("org.junit.vintage:junit-vintage-engine:$junitVintageVersion")
-        compile("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
+        // TODO: figure out how to set Kotlin version properly
+        embeddedKotlin("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+        embeddedKotlin("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+        testCompileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+        testCompileOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+
+        testImplementation("org.awaitility:awaitility:$awaitilityVersion")
+        testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:$mockitoKotlinVersion")
+        testImplementation("ch.tutteli:atrium-cc-en_UK-robstoll:$atriumVersion")
+        testImplementation("ch.tutteli:atrium-verbs:$atriumVersion")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+        testImplementation("org.junit.vintage:junit-vintage-engine:$junitVintageVersion")
+        testImplementation("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     }
+
 }
 
 // This is a temporary workaround to Gradle adding a second SLF4J implementation
