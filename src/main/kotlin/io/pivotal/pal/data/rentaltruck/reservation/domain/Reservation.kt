@@ -14,11 +14,11 @@ data class Reservation(
         val reservationId: String,
 
         @Column(name = "confirmation_number", unique = true, nullable = true)
-        var confirmationNumber: String?,
+        val confirmationNumber: String?,
 
         @Enumerated(value = EnumType.STRING)
         @Column(name = "status")
-        var status: Status,
+        val status: Status,
 
         @Column(name = "pick_up_date")
         val pickUpDate: LocalDate,
@@ -31,12 +31,16 @@ data class Reservation(
 ) {
 
     fun confirm(): Reservation {
-        // set status to confirmed
-        this.status = Status.CONFIRMED
-        // generate confirmation number
-        this.confirmationNumber = generateConfirmationNumber(10)
+        if (status != Status.CREATED) {
+            throw IllegalStateException("can only confirm reservations in created status")
+        }
 
-        return this
+        return copy(
+                // set status to confirmed
+                status = Status.CONFIRMED,
+                // generate confirmation number
+                confirmationNumber = generateConfirmationNumber(10)
+        )
     }
 }
 
