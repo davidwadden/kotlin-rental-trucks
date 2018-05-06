@@ -14,7 +14,7 @@ import javax.persistence.*
 )
 @Entity
 @EntityListeners(AuditingEntityListener::class)
-data class Rental(
+data class Rental private constructor(
 
         @Id
         @Column(name = "rental_id", nullable = false, updatable = false, length = 36)
@@ -54,6 +54,28 @@ data class Rental(
 
 ) {
 
+    constructor(
+            rentalId: String,
+            confirmationNumber: String,
+            status: RentalStatus,
+            reservation: Reservation,
+            truckId: String,
+            pickUpDate: LocalDate,
+            scheduledDropOffDate: LocalDate,
+            customerName: String
+    ) : this(
+            rentalId = rentalId,
+            confirmationNumber = confirmationNumber,
+            status = status,
+            reservation = reservation,
+            truckId = truckId,
+            pickUpDate = pickUpDate,
+            scheduledDropOffDate = scheduledDropOffDate,
+            dropOffDate = null,
+            customerName = customerName,
+            dropOffMileage = null
+    )
+
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false, columnDefinition = "timestamp with time zone")
     lateinit var createdDate: Instant
@@ -64,6 +86,17 @@ data class Rental(
     lateinit var lastModifiedDate: Instant
         private set
 
+    fun pickUpRental(): Rental {
+        return copy(status = RentalStatus.ACTIVE)
+    }
+
+    fun dropOffRental(dropOffDate: LocalDate, dropOffMileage: Int): Rental {
+        return copy(
+                status = RentalStatus.COMPLETED,
+                dropOffDate = dropOffDate,
+                dropOffMileage = dropOffMileage
+        )
+    }
 }
 
 enum class RentalStatus {

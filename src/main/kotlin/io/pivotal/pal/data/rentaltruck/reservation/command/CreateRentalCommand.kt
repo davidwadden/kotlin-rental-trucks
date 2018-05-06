@@ -30,31 +30,23 @@ class CreateRentalCommandHandler(
                     val res = reservationRepository.findByConfirmationNumber(it.confirmationNumber)
                     Mono.zip(Mono.justOrEmpty(it), Mono.justOrEmpty(res))
                 }
-                // build rental (child) and chain on with reservation (parent)
+                // checks whether reservation has already been rented
                 .map { tuple ->
-                    val rental = Rental(
-                            rentalId = tuple.t1.rentalId,
-                            confirmationNumber = tuple.t1.confirmationNumber,
-                            status = RentalStatus.PENDING,
-                            reservation = tuple.t2,
-                            truckId = tuple.t1.truckId,
-                            pickUpDate = tuple.t2.pickUpDate,
-                            scheduledDropOffDate = tuple.t2.dropOffDate,
-                            dropOffDate = null,
-                            customerName = tuple.t2.customerName,
-                            dropOffMileage = null
-                    )
-                    Pair(rental, tuple.t2)
+                    if (tuple.t2.rental != null) {
+                        throw IllegalStateException("reservation ${tuple.t1.confirmationNumber} is already rented")
+                    }
+                    return@map tuple
                 }
                 // create immutable copy of reservation with 1:1 rental added
-                .map { (rental, reservation) ->
-                    reservation.copy(rental = rental)
-                }
+                .map { tuple -> tuple.t2.createRental(tuple.t1.rentalId, tuple.t1.truckId) }
+                // save updated reservation aggregate root to repository
                 .map { reservationRepository.save(it) }
+                // TODO: could this be served by query-optimized data store?
+                // derive hypermedia link to find rental
                 .map { reservation ->
                     URI.create("/rentals/${reservation.rental?.rentalId}")
                 }
-                .flatMap {locationUri ->
+                .flatMap { locationUri ->
                     ServerResponse
                             .created(locationUri)
                             .build()

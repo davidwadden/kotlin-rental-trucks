@@ -69,6 +69,25 @@ data class Reservation(
                 confirmationNumber = generateConfirmationNumber(10)
         )
     }
+
+    fun createRental(rentalId: String, truckId: String): Reservation {
+        if (rental != null) {
+            throw IllegalStateException("Reservation must not already have rental to creat rental")
+        }
+
+        val newRental = Rental(
+                rentalId = rentalId,
+                confirmationNumber = confirmationNumber!!, // FIXME
+                status = RentalStatus.PENDING,
+                reservation = this,
+                truckId = truckId,
+                pickUpDate = pickUpDate,
+                scheduledDropOffDate = dropOffDate,
+                customerName = customerName
+        )
+
+        return copy(reservationStatus = ReservationStatus.COMPLETED, rental = newRental)
+    }
 }
 
 enum class ReservationStatus {
