@@ -44,9 +44,7 @@ class CreateReservationCommandHandler(
 private fun CreateReservationCommandDto.toEntity(): Reservation =
         Reservation(
                 reservationId = reservationId,
-                confirmationNumber = null,
                 reservationStatus = ReservationStatus.CREATED,
-                rental = null,
                 pickUpDate = LocalDate.parse(pickUpDate),
                 dropOffDate = LocalDate.parse(dropOffDate),
                 customerName = customerName

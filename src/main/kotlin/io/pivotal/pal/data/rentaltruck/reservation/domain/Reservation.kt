@@ -16,7 +16,7 @@ import kotlin.streams.asSequence
 )
 @Entity
 @EntityListeners(AuditingEntityListener::class)
-data class Reservation(
+data class Reservation private constructor(
 
         @Id
         @Column(name = "reservation_id", unique = true, nullable = false, updatable = false, length = 36)
@@ -47,6 +47,22 @@ data class Reservation(
         val customerName: String
 ) {
 
+    constructor(
+            reservationId: String,
+            reservationStatus: ReservationStatus,
+            pickUpDate: LocalDate,
+            dropOffDate: LocalDate,
+            customerName: String
+    ) : this(
+            reservationId = reservationId,
+            confirmationNumber = null,
+            reservationStatus = reservationStatus,
+            rental = null,
+            pickUpDate = pickUpDate,
+            dropOffDate = dropOffDate,
+            customerName = customerName
+    )
+
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false, columnDefinition = "timestamp with time zone")
     lateinit var createdDate: Instant
@@ -70,6 +86,7 @@ data class Reservation(
         )
     }
 
+    // TODO: Generate rentalId instead of asking caller to provide
     fun createRental(rentalId: String, truckId: String): Reservation {
         if (rental != null) {
             throw IllegalStateException("Reservation must not already have rental to creat rental")
@@ -87,6 +104,16 @@ data class Reservation(
         )
 
         return copy(reservationStatus = ReservationStatus.COMPLETED, rental = newRental)
+    }
+
+    fun dropOffRental(dropOffDate: LocalDate, dropOffMileage: Int): Reservation {
+        if (rental == null) {
+            throw IllegalStateException("Rental does not exist.  Cannot drop off.")
+        }
+
+        val newRental = rental.dropOffRental(dropOffDate, dropOffMileage)
+
+        return copy(rental = newRental)
     }
 }
 

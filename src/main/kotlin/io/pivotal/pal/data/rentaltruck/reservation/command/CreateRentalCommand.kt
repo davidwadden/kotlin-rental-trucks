@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
 import reactor.util.function.Tuple2
 import java.net.URI
+import java.time.Duration
 
 internal data class CreateRentalCommandDto(
         val rentalId: String,
@@ -40,6 +41,12 @@ class CreateRentalCommandHandler(
                 // create immutable copy of reservation with 1:1 rental added
                 .map { tuple -> tuple.t2.createRental(tuple.t1.rentalId, tuple.t1.truckId) }
                 // save updated reservation aggregate root to repository
+                .map { reservationRepository.save(it) }
+                .delayElement(Duration.ofSeconds(2L))
+                .map { reservation ->
+                    reservation.rental!!.pickUpRental()
+                    return@map reservation
+                }
                 .map { reservationRepository.save(it) }
                 // TODO: could this be served by query-optimized data store?
                 // derive hypermedia link to find rental
