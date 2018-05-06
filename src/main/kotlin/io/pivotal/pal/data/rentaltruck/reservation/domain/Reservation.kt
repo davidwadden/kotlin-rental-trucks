@@ -29,6 +29,14 @@ data class Reservation(
         @Column(name = "reservationStatus", nullable = false, updatable = true, length = 20)
         val reservationStatus: ReservationStatus,
 
+        @OneToOne(
+                mappedBy = "reservation",
+                cascade = [CascadeType.ALL],
+                fetch = FetchType.LAZY,
+                optional = true
+        )
+        val rental: Rental?,
+
         @Column(name = "pick_up_date", nullable = false, updatable = false)
         val pickUpDate: LocalDate,
 
@@ -67,7 +75,9 @@ enum class ReservationStatus {
     CREATED, CONFIRMED, COMPLETED, CANCELED
 }
 
-interface ReservationRepository : CrudRepository<Reservation, String>
+interface ReservationRepository : CrudRepository<Reservation, String> {
+    fun findByConfirmationNumber(confirmationNumber: String): Reservation?
+}
 
 private fun generateConfirmationNumber(outputLength: Long): String {
     val source = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
