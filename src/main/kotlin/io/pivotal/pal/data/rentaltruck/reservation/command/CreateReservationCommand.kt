@@ -9,6 +9,8 @@ import reactor.core.publisher.Mono
 import java.net.URI
 import java.time.Duration
 import java.time.LocalDate
+import java.util.*
+import kotlin.streams.asSequence
 
 internal data class CreateReservationCommandDto(
         val reservationId: String,
@@ -23,16 +25,19 @@ class CreateReservationCommandHandler(
 
     fun create(req: ServerRequest): Mono<ServerResponse> {
 
+        val reservationId =  generateConfirmationNumber(4)
+
         return req
                 .bodyToMono(CreateReservationCommandDto::class.java)
-                .map { commandDto -> commandDto.toEntity() }
+                .map { commandDto -> Pair(commandDto, reservationId) }
+                .map { (commandDto, reservationId) ->
+                    commandDto.toEntity(reservationId)
+                }
                 .map { reservation -> reservationRepository.save(reservation) }
                 .delayElement(Duration.ofSeconds(3L))
                 .map { reservation -> reservation.confirm() }
                 .map { reservation -> reservationRepository.save(reservation) }
-                .map { reservation ->
-                    URI.create("/reservations/${reservation.reservationId}")
-                }
+                .map { reservation -> URI.create("/reservations/${reservation.reservationId}") }
                 .flatMap { locationUri ->
                     ServerResponse
                             .created(locationUri)
@@ -41,7 +46,7 @@ class CreateReservationCommandHandler(
     }
 }
 
-private fun CreateReservationCommandDto.toEntity(): Reservation =
+private fun CreateReservationCommandDto.toEntity(reservationId: String): Reservation =
         Reservation(
                 reservationId = reservationId,
                 reservationStatus = ReservationStatus.CREATED,
@@ -49,3 +54,12 @@ private fun CreateReservationCommandDto.toEntity(): Reservation =
                 dropOffDate = LocalDate.parse(dropOffDate),
                 customerName = customerName
         )
+
+private fun generateConfirmationNumber(outputLength: Long): String {
+    val source = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    return Random()
+            .ints(outputLength, 0, source.length)
+            .asSequence()
+            .map(source::get)
+            .joinToString("")
+}

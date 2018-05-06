@@ -106,6 +106,19 @@ data class Reservation private constructor(
         return copy(reservationStatus = ReservationStatus.COMPLETED, rental = newRental)
     }
 
+    fun pickUpRental(): Reservation {
+        if (rental == null) {
+            throw IllegalStateException("Rental has not been created, cannot pick up rental")
+        }
+        if (rental.status != RentalStatus.PENDING) {
+            throw IllegalStateException("Rental is not in the expected Pending status.  status=${rental.status}")
+        }
+
+        val newRental = rental.pickUpRental()
+
+        return copy(rental = newRental)
+    }
+
     fun dropOffRental(dropOffDate: LocalDate, dropOffMileage: Int): Reservation {
         if (rental == null) {
             throw IllegalStateException("Rental does not exist.  Cannot drop off.")

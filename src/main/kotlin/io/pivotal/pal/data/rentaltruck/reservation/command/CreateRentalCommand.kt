@@ -29,7 +29,7 @@ class CreateRentalCommandHandler(
                 // look up associated reservation by confirmation number
                 .flatMap<Tuple2<CreateRentalCommandDto, Reservation>> {
                     val res = reservationRepository.findByConfirmationNumber(it.confirmationNumber)
-                    Mono.zip(Mono.justOrEmpty(it), Mono.justOrEmpty(res))
+                    return@flatMap Mono.zip(Mono.justOrEmpty(it), Mono.justOrEmpty(res))
                 }
                 // checks whether reservation has already been rented
                 .map { tuple ->
@@ -43,10 +43,7 @@ class CreateRentalCommandHandler(
                 // save updated reservation aggregate root to repository
                 .map { reservationRepository.save(it) }
                 .delayElement(Duration.ofSeconds(2L))
-                .map { reservation ->
-                    reservation.rental!!.pickUpRental()
-                    return@map reservation
-                }
+                .map { reservation -> reservation.pickUpRental() }
                 .map { reservationRepository.save(it) }
                 // TODO: could this be served by query-optimized data store?
                 // derive hypermedia link to find rental

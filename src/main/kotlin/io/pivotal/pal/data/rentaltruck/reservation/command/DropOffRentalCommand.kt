@@ -28,7 +28,7 @@ class DropOffRentalCommandHandler(
                 // look up associated reservation by confirmation number
                 .flatMap<Tuple2<DropOffRentalCommandDto, Reservation>> {
                     val res = reservationRepository.findByConfirmationNumber(it.confirmationNumber)
-                    Mono.zip(Mono.justOrEmpty(it), Mono.justOrEmpty(res))
+                    return@flatMap Mono.zip(Mono.justOrEmpty(it), Mono.justOrEmpty(res))
                 }
                 // checks whether rental is in the desired state
                 .map { tuple ->
