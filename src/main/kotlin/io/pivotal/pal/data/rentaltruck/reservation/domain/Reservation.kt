@@ -19,33 +19,34 @@ import kotlin.streams.asSequence
 data class Reservation(
 
         @Id
-        @Column(name = "reservation_id", unique = true, nullable = false)
+        @Column(name = "reservation_id", unique = true, nullable = false, updatable = false, length = 36)
         val reservationId: String,
 
-        @Column(name = "confirmation_number", nullable = true)
+        @Column(name = "confirmation_number", nullable = true, updatable = true, length = 10)
         val confirmationNumber: String?,
 
         @Enumerated(value = EnumType.STRING)
-        @Column(name = "status", nullable = false)
+        @Column(name = "status", nullable = false, updatable = true, length = 20)
         val status: Status,
 
-        @Column(name = "pick_up_date", nullable = false)
+        @Column(name = "pick_up_date", nullable = false, updatable = false)
         val pickUpDate: LocalDate,
 
-        @Column(name = "drop_off_date", nullable = true)
+        @Column(name = "drop_off_date", nullable = true, updatable = false)
         val dropOffDate: LocalDate,
 
-        @Column(name = "customer_name", nullable = false)
+        @Column(name = "customer_name", nullable = false, updatable = false, length = 100)
         val customerName: String
 ) {
 
     @CreatedDate
-    @Column(name = "created_date", nullable = false, columnDefinition = "timestamp with time zone")
-    val createdDate: Instant = Instant.now()
+    @Column(name = "created_date", nullable = false, updatable = false, columnDefinition = "timestamp with time zone")
+    lateinit var createdDate: Instant
+        private set
 
     @LastModifiedDate
     @Column(name = "last_modified_date", nullable = false, columnDefinition = "timestamp with time zone")
-    var lastModifiedDate: Instant? = null
+    lateinit var lastModifiedDate: Instant
         private set
 
     fun confirm(): Reservation {
