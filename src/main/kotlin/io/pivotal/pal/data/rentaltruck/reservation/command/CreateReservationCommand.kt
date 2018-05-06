@@ -7,28 +7,35 @@ import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
 import java.net.URI
+import java.time.Duration
 import java.time.LocalDate
 
-data class CreateReservationCommandDto(
+internal data class CreateReservationCommandDto(
         val reservationId: String,
         val pickUpDate: String,
         val dropOffDate: String,
         val customerName: String
 )
 
-class CreateReservationCommandHandler(private val reservationRepository: ReservationRepository) {
+class CreateReservationCommandHandler(
+        private val reservationRepository: ReservationRepository
+) {
 
     fun create(req: ServerRequest): Mono<ServerResponse> {
 
         return req
                 .bodyToMono(CreateReservationCommandDto::class.java)
-                .map { dto -> dto.toEntity() }
-                .map { entity -> reservationRepository.save(entity) }
-                .map { entity -> entity.confirm() }
-                .map { entity -> reservationRepository.save(entity) }
-                .flatMap { _ ->
+                .map { commandDto -> commandDto.toEntity() }
+                .map { reservation -> reservationRepository.save(reservation) }
+                .delayElement(Duration.ofSeconds(3L))
+                .map { reservation -> reservation.confirm() }
+                .map { reservation -> reservationRepository.save(reservation) }
+                .map { reservation ->
+                    URI.create("/reservations/${reservation.reservationId}")
+                }
+                .flatMap { locationUri ->
                     ServerResponse
-                            .created(URI.create("/reservations/stubbed"))
+                            .created(locationUri)
                             .build()
                 }
     }
