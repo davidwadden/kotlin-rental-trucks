@@ -9,7 +9,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
-internal class KotlinRentalTrucksApplicationTest {
+internal class ApplicationTest {
 
     @Test
     fun `wires the context`() {

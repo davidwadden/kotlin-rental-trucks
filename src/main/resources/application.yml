@@ -23,6 +23,10 @@ spring:
     database: hsql
     show-sql: true
 
+context:
+  initializer:
+    classes: io.pivotal.pal.data.rentaltruck.BeansInitializer
+
 ---
 
 spring:
@@ -38,6 +42,10 @@ spring:
         implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl
     database: h2
     show-sql: true
+
+context:
+  initializer:
+    classes: io.pivotal.pal.data.rentaltruck.BeansInitializer
 
 ---
 
@@ -55,3 +63,7 @@ spring:
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQL94Dialect
     show-sql: false
+
+context:
+  initializer:
+    classes: io.pivotal.pal.data.rentaltruck.BeansInitializer
