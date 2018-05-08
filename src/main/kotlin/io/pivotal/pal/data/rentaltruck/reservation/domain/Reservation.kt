@@ -7,9 +7,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import org.springframework.data.repository.CrudRepository
 import java.time.Instant
 import java.time.LocalDate
-import java.util.*
 import javax.persistence.*
-import kotlin.streams.asSequence
 
 @Table(
         name = "reservation",
@@ -88,7 +86,7 @@ data class Reservation private constructor(
     }
 
     // TODO: Generate rentalId instead of asking caller to provide
-    fun createRental(rentalId: String, truckId: String): Reservation {
+    fun createRental(rentalId: String): Reservation {
         if (rental != null) {
             throw IllegalStateException("Rental already exists.  Reservation must not have rental")
         }
@@ -104,7 +102,6 @@ data class Reservation private constructor(
                 confirmationNumber = confirmationNumber,
                 status = RentalStatus.PENDING,
                 reservation = this,
-                truckId = truckId,
                 pickUpDate = pickUpDate,
                 scheduledDropOffDate = dropOffDate,
                 customerName = customerName
@@ -113,7 +110,7 @@ data class Reservation private constructor(
         return copy(reservationStatus = ReservationStatus.COMPLETED, rental = newRental)
     }
 
-    fun pickUpRental(): Reservation {
+    fun pickUpRental(truck: Truck): Reservation {
         if (rental == null) {
             throw IllegalStateException("Rental has not been created, cannot pick up rental")
         }
@@ -121,7 +118,7 @@ data class Reservation private constructor(
             throw IllegalStateException("Rental is not in the expected Pending status.  status=${rental.status}")
         }
 
-        val newRental = rental.pickUpRental()
+        val newRental = rental.pickUpRental(truck)
 
         return copy(rental = newRental)
     }

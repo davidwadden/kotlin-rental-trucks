@@ -34,8 +34,13 @@ data class Rental private constructor(
         )
         val reservation: Reservation,
 
-        @Column(name = "truck_id", nullable = false, updatable = false, length = 36)
-        val truckId: String,
+        @OneToOne(
+                mappedBy = "rental",
+                cascade = [CascadeType.ALL],
+                fetch = FetchType.LAZY,
+                optional = true
+        )
+        val truck: Truck?,
 
         @Column(name = "pick_up_date", nullable = false, updatable = false)
         val pickUpDate: LocalDate,
@@ -59,7 +64,6 @@ data class Rental private constructor(
             confirmationNumber: String,
             status: RentalStatus,
             reservation: Reservation,
-            truckId: String,
             pickUpDate: LocalDate,
             scheduledDropOffDate: LocalDate,
             customerName: String
@@ -68,7 +72,7 @@ data class Rental private constructor(
             confirmationNumber = confirmationNumber,
             status = status,
             reservation = reservation,
-            truckId = truckId,
+            truck = null,
             pickUpDate = pickUpDate,
             scheduledDropOffDate = scheduledDropOffDate,
             dropOffDate = null,
@@ -86,8 +90,14 @@ data class Rental private constructor(
     lateinit var lastModifiedDate: Instant
         private set
 
-    fun pickUpRental(): Rental {
-        return copy(status = RentalStatus.ACTIVE)
+    fun pickUpRental(truck: Truck): Rental {
+
+        val newTruck = truck.assignedToRental()
+
+        return copy(
+                status = RentalStatus.ACTIVE,
+                truck = newTruck
+        )
     }
 
     fun dropOffRental(dropOffDate: LocalDate, dropOffMileage: Int): Rental {

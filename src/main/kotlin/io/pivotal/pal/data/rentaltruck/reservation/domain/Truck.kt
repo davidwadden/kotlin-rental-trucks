@@ -3,7 +3,7 @@ package io.pivotal.pal.data.rentaltruck.reservation.domain
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import org.springframework.data.repository.CrudRepository
+import org.springframework.data.repository.Repository
 import java.time.Instant
 import javax.persistence.*
 
@@ -18,7 +18,14 @@ data class Truck(
 
         @Enumerated(value = EnumType.STRING)
         @Column(name = "status", nullable = false, updatable = true, length = 20)
-        val status: TruckStatus
+        val status: TruckStatus,
+
+        @OneToOne(fetch = FetchType.LAZY, optional = true)
+        @JoinColumn(
+                name = "rental_id",
+                foreignKey = ForeignKey(name = "truck_rental_id_fkey")
+        )
+        val rental: Rental?
 
 ) {
 
@@ -32,7 +39,11 @@ data class Truck(
     lateinit var lastModifiedDate: Instant
         private set
 
-    fun pickedUpByRenter(): Truck {
+    fun assignedToRental(): Truck {
+        when (status) {
+            TruckStatus.RENTED -> throw IllegalStateException("Truck cannot be assigned.  It is currently Rented.")
+        }
+
         return copy(status = TruckStatus.RENTED)
     }
 
@@ -42,6 +53,6 @@ enum class TruckStatus {
     AVAILABLE, RENTED
 }
 
-interface TruckRepository : CrudRepository<Truck, String> {
+interface TruckRepository : Repository<Truck, String> {
     fun findByTruckId(truckId: String): Truck?
 }

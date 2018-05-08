@@ -31,36 +31,37 @@ class CreateRentalCommandHandler(
                 // look up associated reservation by confirmation number
                 .flatMap<Tuple2<CreateRentalCommandDto, Reservation>> {
                     val res = reservationRepository.findByConfirmationNumber(it.confirmationNumber)
-                    return@flatMap Mono.zip(Mono.justOrEmpty(it), Mono.justOrEmpty(res))
+                    Mono.zip(Mono.justOrEmpty(it), Mono.justOrEmpty(res))
                 }
                 // checks whether reservation has already been rented
                 .map { tuple ->
                     if (tuple.t2.rental != null) {
                         throw IllegalStateException("reservation ${tuple.t1.confirmationNumber} is already rented")
                     }
-                    return@map tuple
+                    tuple
                 }
                 // create immutable copy of reservation with 1:1 rental added
-                .map { tuple -> tuple.t2.createRental(rentalId, tuple.t1.truckId) }
+                .map { tuple ->
+                    val reservation = tuple.t2.createRental(rentalId)
+                    Pair(tuple.t1, reservation)
+                }
                 // save updated reservation aggregate root to repository
-                .map { reservationRepository.save(it) }
+                .map { (commandDto, reservation) ->
+                    val newReservation = reservationRepository.save(reservation)
+                    Pair(commandDto, newReservation)
+
+                }
                 .delayElement(Duration.ofSeconds(2L))
-                .map { reservation -> reservation.pickUpRental() }
+                .map { (commandDto, reservation) ->
+                    val truck = truckRepository.findByTruckId(commandDto.truckId)!! // FIXME
+                    reservation.pickUpRental(truck)
+                    reservationRepository.save(reservation)
+                }
                 .map { reservationRepository.save(it) }
-                // FIXME: ideally the RentalPickedUpEvent handles this
-                .map { reservation ->
-                    val truck = truckRepository.findByTruckId(reservation.rental!!.truckId)!!
-                    truck.pickedUpByRenter()
-                    return@map Pair(reservation, truck)
-                }
-                .map {(reservation, truck) ->
-                    truckRepository.save(truck)
-                    return@map reservation
-                }
                 // TODO: could this be served by query-optimized data store?
                 // derive hypermedia link to find rental
                 .map { reservation ->
-                    URI.create("/rentals/${reservation.rental?.rentalId}")
+                    URI.create("/rentals/${reservation.rental!!.rentalId}")
                 }
                 .flatMap { locationUri ->
                     ServerResponse
