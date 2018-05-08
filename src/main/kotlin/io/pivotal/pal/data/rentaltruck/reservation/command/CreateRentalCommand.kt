@@ -3,6 +3,7 @@ package io.pivotal.pal.data.rentaltruck.reservation.command
 import io.pivotal.pal.data.rentaltruck.generateRandomString
 import io.pivotal.pal.data.rentaltruck.reservation.domain.Reservation
 import io.pivotal.pal.data.rentaltruck.reservation.domain.ReservationRepository
+import io.pivotal.pal.data.rentaltruck.reservation.domain.TruckRepository
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
@@ -16,7 +17,8 @@ internal data class CreateRentalCommandDto(
 )
 
 class CreateRentalCommandHandler(
-        private val reservationRepository: ReservationRepository
+        private val reservationRepository: ReservationRepository,
+        private val truckRepository: TruckRepository
 ) {
 
     fun create(req: ServerRequest): Mono<ServerResponse> {
@@ -45,6 +47,16 @@ class CreateRentalCommandHandler(
                 .delayElement(Duration.ofSeconds(2L))
                 .map { reservation -> reservation.pickUpRental() }
                 .map { reservationRepository.save(it) }
+                // FIXME: ideally the RentalPickedUpEvent handles this
+                .map { reservation ->
+                    val truck = truckRepository.findByTruckId(reservation.rental!!.truckId)!!
+                    truck.pickedUpByRenter()
+                    return@map Pair(reservation, truck)
+                }
+                .map {(reservation, truck) ->
+                    truckRepository.save(truck)
+                    return@map reservation
+                }
                 // TODO: could this be served by query-optimized data store?
                 // derive hypermedia link to find rental
                 .map { reservation ->
