@@ -7,8 +7,8 @@ import org.springframework.data.repository.Repository
 import java.time.Instant
 import javax.persistence.*
 
-@Table(name = "truck")
-@Entity
+@Table(name = "reservation_truck")
+@Entity(name = "reservationTruck")
 @EntityListeners(AuditingEntityListener::class)
 data class Truck(
 

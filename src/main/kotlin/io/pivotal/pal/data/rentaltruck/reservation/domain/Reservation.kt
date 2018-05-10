@@ -1,5 +1,9 @@
 package io.pivotal.pal.data.rentaltruck.reservation.domain
 
+import io.pivotal.pal.data.rentaltruck.event.RentalCreated
+import io.pivotal.pal.data.rentaltruck.event.RentalDroppedOff
+import io.pivotal.pal.data.rentaltruck.event.RentalPickedUp
+import io.pivotal.pal.data.rentaltruck.event.ReservationConfirmed
 import io.pivotal.pal.data.rentaltruck.generateRandomString
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
@@ -163,6 +167,16 @@ data class Reservation private constructor(
     private fun rentalDroppedOff(event: RentalDroppedOff): Reservation {
         return copy(rental = event.rental)
     }
+
+    fun <T> handleEvent(event: T): Reservation {
+        return when (event) {
+            is ReservationConfirmed -> reservationConfirmed(event)
+            is RentalCreated -> rentalCreated(event)
+            is RentalPickedUp -> rentalPickedUp(event)
+            is RentalDroppedOff -> rentalDroppedOff(event)
+            else -> throw IllegalArgumentException("Unexpected event type")
+        }
+    }
 }
 
 enum class ReservationStatus {
@@ -172,27 +186,3 @@ enum class ReservationStatus {
 interface ReservationRepository : CrudRepository<Reservation, String> {
     fun findByConfirmationNumber(confirmationNumber: String): Reservation?
 }
-
-internal data class ReservationConfirmed(
-        val reservationId: String,
-        val confirmationNumber: String
-)
-
-internal data class RentalCreated(
-        val reservationId: String,
-        val rental: Rental
-)
-
-internal data class RentalPickedUp(
-        val reservationId: String,
-        val confirmationNumber: String,
-        val rental: Rental
-)
-
-internal data class RentalDroppedOff(
-        val reservationId: String,
-        val confirmationNumber: String,
-        val rental: Rental,
-        val dropOffDate: LocalDate,
-        val dropOffMileage: Int
-)
