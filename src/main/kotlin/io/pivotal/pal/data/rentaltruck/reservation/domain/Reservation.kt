@@ -46,6 +46,9 @@ data class Reservation private constructor(
         val customerName: String
 ) {
 
+    // NOTE: creation of the Reservation does not emit an event for now since that requires initializing
+    // in a "null" state to record a ReservationCreated domain event to initalize the state.  Deferring
+    // this until we decide whether to event-source the Reservation.
     constructor(
             reservationId: String,
             reservationStatus: ReservationStatus,
@@ -77,16 +80,20 @@ data class Reservation private constructor(
             throw IllegalStateException("can only confirm reservations in created reservationStatus")
         }
 
+        // generate confirmation number
+        val confirmationNumber = generateRandomString(6)
+        return reservationConfirmed(ReservationConfirmed(reservationId, confirmationNumber))
+    }
+
+    private fun reservationConfirmed(event: ReservationConfirmed): Reservation {
         return copy(
                 // set status to confirmed
                 reservationStatus = ReservationStatus.CONFIRMED,
-                // generate confirmation number
-                confirmationNumber = generateRandomString(6)
+                confirmationNumber = event.confirmationNumber
         )
     }
 
-    // TODO: Generate rentalId instead of asking caller to provide
-    fun createRental(rentalId: String): Reservation {
+    fun createRental(): Reservation {
         if (rental != null) {
             throw IllegalStateException("Rental already exists.  Reservation must not have rental")
         }
@@ -97,6 +104,10 @@ data class Reservation private constructor(
             throw IllegalStateException("Expected reservation status to be Confirmed.  status=$reservationStatus")
         }
 
+        // generate confirmation number
+        val rentalId = generateRandomString(6)
+
+        // create the rental so it can be embedded into the event for potential subscribers
         val newRental = Rental(
                 rentalId = rentalId,
                 confirmationNumber = confirmationNumber,
@@ -107,7 +118,15 @@ data class Reservation private constructor(
                 customerName = customerName
         )
 
-        return copy(reservationStatus = ReservationStatus.COMPLETED, rental = newRental)
+        // apply the state mutation to the aggregate root
+        return rentalCreated(RentalCreated(reservationId = reservationId, rental = newRental))
+    }
+
+    private fun rentalCreated(event: RentalCreated): Reservation {
+        return copy(
+                reservationStatus = ReservationStatus.COMPLETED,
+                rental = event.rental
+        )
     }
 
     fun pickUpRental(truck: Truck): Reservation {
@@ -118,9 +137,15 @@ data class Reservation private constructor(
             throw IllegalStateException("Rental is not in the expected Pending status.  status=${rental.status}")
         }
 
+        // delegate business logic to related entities
         val newRental = rental.pickUpRental(truck)
 
-        return copy(rental = newRental)
+        // apply the state mutation to the aggregate root
+        return rentalPickedUp(RentalPickedUp(reservationId, confirmationNumber!!, newRental)) // FIXME
+    }
+
+    private fun rentalPickedUp(event: RentalPickedUp): Reservation {
+        return copy(rental = event.rental)
     }
 
     fun dropOffRental(dropOffDate: LocalDate, dropOffMileage: Int): Reservation {
@@ -128,9 +153,15 @@ data class Reservation private constructor(
             throw IllegalStateException("Rental does not exist.  Cannot drop off.")
         }
 
+        // delegate business logic to related entities
         val newRental = rental.dropOffRental(dropOffDate, dropOffMileage)
 
-        return copy(rental = newRental)
+        // apply the state mutation to the aggregate root
+        return rentalDroppedOff(RentalDroppedOff(reservationId, confirmationNumber!!, newRental, dropOffDate, dropOffMileage))
+    }
+
+    private fun rentalDroppedOff(event: RentalDroppedOff): Reservation {
+        return copy(rental = event.rental)
     }
 }
 
@@ -141,3 +172,27 @@ enum class ReservationStatus {
 interface ReservationRepository : CrudRepository<Reservation, String> {
     fun findByConfirmationNumber(confirmationNumber: String): Reservation?
 }
+
+internal data class ReservationConfirmed(
+        val reservationId: String,
+        val confirmationNumber: String
+)
+
+internal data class RentalCreated(
+        val reservationId: String,
+        val rental: Rental
+)
+
+internal data class RentalPickedUp(
+        val reservationId: String,
+        val confirmationNumber: String,
+        val rental: Rental
+)
+
+internal data class RentalDroppedOff(
+        val reservationId: String,
+        val confirmationNumber: String,
+        val rental: Rental,
+        val dropOffDate: LocalDate,
+        val dropOffMileage: Int
+)

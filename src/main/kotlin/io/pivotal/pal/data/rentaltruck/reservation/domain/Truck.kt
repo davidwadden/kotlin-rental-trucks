@@ -42,6 +42,9 @@ data class Truck(
     fun assignedToRental(): Truck {
         when (status) {
             TruckStatus.RENTED -> throw IllegalStateException("Truck cannot be assigned.  It is currently Rented.")
+            else -> {
+                // no-op
+            }
         }
 
         return copy(status = TruckStatus.RENTED)

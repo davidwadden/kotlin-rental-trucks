@@ -42,7 +42,7 @@ class CreateRentalCommandHandler(
                 }
                 // create immutable copy of reservation with 1:1 rental added
                 .map { tuple ->
-                    val reservation = tuple.t2.createRental(rentalId)
+                    val reservation = tuple.t2.createRental()
                     Pair(tuple.t1, reservation)
                 }
                 // save updated reservation aggregate root to repository

@@ -91,6 +91,12 @@ data class Rental private constructor(
         private set
 
     fun pickUpRental(truck: Truck): Rental {
+        if (status != RentalStatus.PENDING) {
+            throw IllegalStateException("Can only pick up rental on Pending rental")
+        }
+        if (truck.rental != null) {
+            throw IllegalStateException("Truck cannot be rented.  Already assigned to another rental.")
+        }
 
         val newTruck = truck.assignedToRental()
 
@@ -101,6 +107,10 @@ data class Rental private constructor(
     }
 
     fun dropOffRental(dropOffDate: LocalDate, dropOffMileage: Int): Rental {
+        if (status != RentalStatus.ACTIVE) {
+            throw IllegalStateException("Can only drop off Active rentals")
+        }
+
         return copy(
                 status = RentalStatus.COMPLETED,
                 dropOffDate = dropOffDate,
