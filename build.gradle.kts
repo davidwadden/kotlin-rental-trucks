@@ -1,13 +1,18 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.gradle.kotlin.kotlin-dsl") version "0.17.3"
-    id("org.springframework.boot") version "2.0.1.RELEASE"
-    id("org.jetbrains.kotlin.plugin.spring") version "1.2.41"
-    id("org.jetbrains.kotlin.plugin.jpa") version "1.2.41"
-    id("io.spring.dependency-management") version "1.0.5.RELEASE"
+    val kotlinVersion = "1.2.41"
+    val kotlinDslVersion = "0.17.3"
+    val springBootVersion = "2.0.2.RELEASE"
+    val springDependencyManagementPluginVersion = "1.0.5.RELEASE"
 
-    kotlin("jvm") version "1.2.41"
+    id("org.gradle.kotlin.kotlin-dsl") version kotlinDslVersion
+    id("org.springframework.boot") version springBootVersion
+    id("org.jetbrains.kotlin.plugin.spring") version kotlinVersion
+    id("org.jetbrains.kotlin.plugin.jpa") version kotlinVersion
+    id("io.spring.dependency-management") version springDependencyManagementPluginVersion
+
+    kotlin("jvm") version kotlinVersion
     java
     eclipse
 }
