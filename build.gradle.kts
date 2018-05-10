@@ -33,18 +33,24 @@ repositories {
     maven(url = "https://repo.spring.io/milestone")
 }
 
-val kotlinVersion = "1.2.41"
-val awaitilityVersion = "3.1.0"
-val mockitoKotlinVersion = "2.0.0-alpha03"
-val atriumVersion = "0.6.0"
-val junit4Version = "4.12"
-val junitVintageVersion = "5.1.1"
-val junitPlatformVersion = "1.1.1"
-val junitJupiterVersion = "5.1.1"
+//This is necessary to make the version accessible in other places
+val kotlinVersion: String? by extra {
+    buildscript.configurations["classpath"]
+            .resolvedConfiguration.firstLevelModuleDependencies
+            .find { it.moduleName == "kotlin-gradle-plugin" }?.moduleVersion
+}
+
+val awaitilityVersion: String by project
+val mockitoKotlinVersion: String by project
+val atriumVersion: String by project
+val junit4Version: String by project
+val junitVintageVersion: String by project
+val junitPlatformVersion: String by project
+val junitJupiterVersion: String by project
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8:$kotlinVersion"))
-    implementation(kotlin("reflect:$kotlinVersion"))
+    implementation(kotlin("stdlib-jdk8", kotlinVersion))
+    implementation(kotlin("reflect", kotlinVersion))
 
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
