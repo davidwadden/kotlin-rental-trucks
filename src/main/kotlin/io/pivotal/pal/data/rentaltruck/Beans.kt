@@ -4,11 +4,12 @@ import io.pivotal.pal.data.framework.event.AsyncEventHandler
 import io.pivotal.pal.data.framework.event.AsyncEventPublisher
 import io.pivotal.pal.data.framework.event.AsyncEventSubscriberAdapter
 import io.pivotal.pal.data.framework.event.DefaultAsyncEventPublisher
-import io.pivotal.pal.data.rentaltruck.reservation.domain.ReservationEvent
 import io.pivotal.pal.data.rentaltruck.fleet.handler.ReservationEventHandler
 import io.pivotal.pal.data.rentaltruck.reservation.command.CreateRentalCommandHandler
 import io.pivotal.pal.data.rentaltruck.reservation.command.CreateReservationCommandHandler
 import io.pivotal.pal.data.rentaltruck.reservation.command.DropOffRentalCommandHandler
+import io.pivotal.pal.data.rentaltruck.reservation.domain.*
+import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.context.support.beans
@@ -32,6 +33,13 @@ fun beans() = beans {
         AsyncEventSubscriberAdapter("event-type", ref())
     }
 
+    bean {
+        object : BeanPostProcessor {
+            override fun postProcessAfterInitialization(bean: Any, beanName: String): Any? {
+                return EventPublishingReservationRepository(bean as ReservationRepository, ref())
+            }
+        }
+    }
 }
 
 // See application.yml context.initializer.classes entry

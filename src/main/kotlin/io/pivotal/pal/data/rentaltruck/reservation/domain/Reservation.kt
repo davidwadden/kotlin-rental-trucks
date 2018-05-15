@@ -1,5 +1,6 @@
 package io.pivotal.pal.data.rentaltruck.reservation.domain
 
+import io.pivotal.pal.data.framework.event.AsyncEventPublisher
 import io.pivotal.pal.data.rentaltruck.generateRandomString
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
@@ -64,6 +65,15 @@ data class Reservation private constructor(
             customerName = customerName
     )
 
+    @kotlin.jvm.Transient
+    @javax.persistence.Transient
+    private val dirtyEvents = mutableListOf<ReservationEvent>()
+
+    @kotlin.jvm.Transient
+    @javax.persistence.Transient
+    var domainEvents: List<ReservationEvent> = dirtyEvents
+        get() = dirtyEvents.toList()
+
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false, columnDefinition = "timestamp with time zone")
     lateinit var createdDate: Instant
@@ -85,6 +95,9 @@ data class Reservation private constructor(
     }
 
     private fun reservationConfirmed(event: ReservationConfirmedEvent): Reservation {
+        // append to list of dirty events
+        dirtyEvents.add(event)
+
         return copy(
                 // set status to confirmed
                 reservationStatus = ReservationStatus.CONFIRMED,
@@ -119,6 +132,9 @@ data class Reservation private constructor(
     }
 
     private fun rentalCreated(event: RentalCreatedEvent): Reservation {
+        // append to list of dirty events
+        dirtyEvents.add(event)
+
         // create the rental so it can be embedded into the event for potential subscribers
         val newRental = Rental(
                 rentalId = event.rentalId,
@@ -153,7 +169,8 @@ data class Reservation private constructor(
     }
 
     private fun rentalPickedUp(event: RentalPickedUpEvent): Reservation {
-
+        // append to list of dirty events
+        dirtyEvents.add(event)
 
         return copy(rental = event.rental)
     }
@@ -171,6 +188,9 @@ data class Reservation private constructor(
     }
 
     private fun rentalDroppedOff(event: RentalDroppedOffEvent): Reservation {
+        // append to list of dirty events
+        dirtyEvents.add(event)
+
         return copy(rental = event.rental)
     }
 
@@ -190,4 +210,35 @@ enum class ReservationStatus {
 
 interface ReservationRepository : CrudRepository<Reservation, String> {
     fun findByConfirmationNumber(confirmationNumber: String): Reservation?
+}
+
+class EventPublishingReservationRepository(
+        private val reservationRepository: ReservationRepository,
+        private val eventPublisher: AsyncEventPublisher<ReservationEvent>
+) : ReservationRepository by reservationRepository {
+
+    override fun <S : Reservation?> save(entity: S): S {
+        // delegate to JPA repository
+        val retVal = reservationRepository.save(entity)
+
+        // publish domain events
+        entity?.domainEvents?.forEach { event -> eventPublisher.publish(event) }
+
+        // return value from delegate
+        return retVal
+    }
+
+    override fun <S : Reservation?> saveAll(entities: MutableIterable<S>): MutableIterable<S> {
+        // delegate to JPA repository
+        val retVal = reservationRepository.saveAll(entities)
+
+        // FIXME: does this order make sense?  do we need to order by timestamp
+        // publish domain events
+        val domainEvents =
+                entities.flatMap { it?.domainEvents ?: emptyList() }
+        domainEvents.forEach { event -> eventPublisher.publish(event) }
+
+        // return value from delegate
+        return retVal
+    }
 }
