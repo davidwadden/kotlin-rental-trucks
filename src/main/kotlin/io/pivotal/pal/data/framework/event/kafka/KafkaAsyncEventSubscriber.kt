@@ -5,7 +5,7 @@ import org.springframework.kafka.core.KafkaTemplate
 
 class KafkaAsyncEventSubscriber<T>(private val eventName: String, private val template: KafkaTemplate<Any, T>) : AsyncEventHandler<T> {
 
-    override fun onEvent(data: T) {
-        template.send(eventName, data)
+    override fun onEvent(event: T) {
+        template.send(eventName, event)
     }
 }

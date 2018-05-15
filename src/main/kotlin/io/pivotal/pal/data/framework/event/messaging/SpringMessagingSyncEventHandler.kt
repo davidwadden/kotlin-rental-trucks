@@ -6,8 +6,8 @@ import org.springframework.messaging.support.MessageBuilder
 
 class SpringMessagingSyncEventHandler<C, R>(private val eventName: String, private val channel: MessageChannel) : SyncEventHandler<C, R> {
 
-    override fun onEvent(data: C): R? {
-        val message = MessageBuilder.withPayload(data)
+    override fun onEvent(event: C): R? {
+        val message = MessageBuilder.withPayload(event)
                 .setHeader("eventName", eventName)
                 .build()
         channel.send(message)

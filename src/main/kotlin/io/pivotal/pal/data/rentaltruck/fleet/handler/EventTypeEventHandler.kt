@@ -5,7 +5,7 @@ import io.pivotal.pal.data.rentaltruck.event.EventType
 
 class EventTypeEventHandler : AsyncEventHandler<EventType> {
 
-    override fun onEvent(data: EventType) {
+    override fun onEvent(event: EventType) {
         // process event types
     }
 }

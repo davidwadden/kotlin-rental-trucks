@@ -35,13 +35,13 @@ class SyncEventSubscriberAdapter<C, R>(
         registerSubscriber(this as SyncEventSubscriberAdapter<Any, Any?>)
     }
 
-    fun onEvent(data: C): R? {
+    fun onEvent(event: C): R? {
         try {
             var waitTime = initialRetryWaitTime
 
             for (retryCount in 0..maxRetryCount) {
                 try {
-                    return handler.onEvent(data)
+                    return handler.onEvent(event)
                 } catch (t: Exception) {
                     if (recoverableExceptions != null &&
                             !recoverableExceptions.isEmpty() &&
@@ -62,7 +62,7 @@ class SyncEventSubscriberAdapter<C, R>(
 
             return null
         } catch (e: Exception) {
-            return errorHandler?.onEvent(data)
+            return errorHandler?.onEvent(event)
         }
 
     }

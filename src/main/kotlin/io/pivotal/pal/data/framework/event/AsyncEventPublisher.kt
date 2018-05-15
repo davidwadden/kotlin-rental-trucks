@@ -12,7 +12,7 @@ interface AsyncEventPublisher<T> {
     /**
      * Publishes an event based using the underlying implementation.
      *
-     * @param data the event to send
+     * @param event the event to send
      */
-    fun publish(data: T)
+    fun publish(event: T)
 }

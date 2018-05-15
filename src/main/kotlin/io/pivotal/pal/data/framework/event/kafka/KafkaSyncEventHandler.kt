@@ -5,8 +5,8 @@ import org.springframework.kafka.core.KafkaTemplate
 
 class KafkaSyncEventHandler<C : Any, R : Any?>(private val eventName: String, private val template: KafkaTemplate<Any, C>) : SyncEventHandler<C, R> {
 
-    override fun onEvent(data: C): R? {
-        template.send(eventName, data)
+    override fun onEvent(event: C): R? {
+        template.send(eventName, event)
         return null
     }
 }

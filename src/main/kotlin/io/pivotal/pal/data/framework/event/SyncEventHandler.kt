@@ -11,8 +11,8 @@ interface SyncEventHandler<C, R> {
     /**
      * The event framework will call this method upon processing of an Event.
      *
-     * @param data the event being emitted
+     * @param event the event being emitted
      * @return the return value of processing the event
      */
-    fun onEvent(data: C): R?
+    fun onEvent(event: C): R?
 }
