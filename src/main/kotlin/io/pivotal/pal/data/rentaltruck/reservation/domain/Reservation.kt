@@ -55,14 +55,13 @@ data class Reservation private constructor(
     // this until we decide whether to event-source the Reservation.
     constructor(
             reservationId: String,
-            reservationStatus: ReservationStatus,
             pickUpDate: LocalDate,
             dropOffDate: LocalDate,
             customerName: String
     ) : this(
             reservationId = reservationId,
             confirmationNumber = null,
-            reservationStatus = reservationStatus,
+            reservationStatus = ReservationStatus.CREATED,
             rental = null,
             pickUpDate = pickUpDate,
             dropOffDate = dropOffDate,

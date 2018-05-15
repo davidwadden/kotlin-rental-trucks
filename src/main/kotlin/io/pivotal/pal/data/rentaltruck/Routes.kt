@@ -1,4 +1,4 @@
-package io.pivotal.pal.data.rentaltruck.reservation
+package io.pivotal.pal.data.rentaltruck
 
 import io.pivotal.pal.data.rentaltruck.reservation.command.CreateRentalCommandHandler
 import io.pivotal.pal.data.rentaltruck.reservation.command.CreateReservationCommandHandler

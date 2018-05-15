@@ -3,10 +3,6 @@
 server:
   port: 8880
 
-spring:
-  profiles:
-    include: hsql
-
 ---
 
 spring:

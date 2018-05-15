@@ -3,7 +3,6 @@ package io.pivotal.pal.data.rentaltruck.reservation.command
 import io.pivotal.pal.data.rentaltruck.generateRandomString
 import io.pivotal.pal.data.rentaltruck.reservation.domain.Reservation
 import io.pivotal.pal.data.rentaltruck.reservation.domain.ReservationRepository
-import io.pivotal.pal.data.rentaltruck.reservation.domain.ReservationStatus
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
@@ -47,7 +46,6 @@ class CreateReservationCommandHandler(
 private fun CreateReservationCommandDto.toEntity(reservationId: String): Reservation =
         Reservation(
                 reservationId = reservationId,
-                reservationStatus = ReservationStatus.CREATED,
                 pickUpDate = LocalDate.parse(pickUpDate),
                 dropOffDate = LocalDate.parse(dropOffDate),
                 customerName = customerName
