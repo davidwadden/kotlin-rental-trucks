@@ -1,9 +1,6 @@
 package io.pivotal.pal.data.rentaltruck.reservation.domain
 
-import io.pivotal.pal.data.rentaltruck.event.RentalCreated
-import io.pivotal.pal.data.rentaltruck.event.RentalDroppedOff
-import io.pivotal.pal.data.rentaltruck.event.RentalPickedUp
-import io.pivotal.pal.data.rentaltruck.event.ReservationConfirmed
+import io.pivotal.pal.data.rentaltruck.event.*
 import io.pivotal.pal.data.rentaltruck.generateRandomString
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
@@ -85,10 +82,10 @@ data class Reservation private constructor(
 
         // generate confirmation number
         val confirmationNumber = generateRandomString(6)
-        return reservationConfirmed(ReservationConfirmed(reservationId, confirmationNumber))
+        return reservationConfirmed(ReservationConfirmedEvent(reservationId, confirmationNumber))
     }
 
-    private fun reservationConfirmed(event: ReservationConfirmed): Reservation {
+    private fun reservationConfirmed(event: ReservationConfirmedEvent): Reservation {
         return copy(
                 // set status to confirmed
                 reservationStatus = ReservationStatus.CONFIRMED,
@@ -122,10 +119,10 @@ data class Reservation private constructor(
         )
 
         // apply the state mutation to the aggregate root
-        return rentalCreated(RentalCreated(reservationId = reservationId, rental = newRental))
+        return handleEvent(RentalCreatedEvent(reservationId = reservationId, rental = newRental))
     }
 
-    private fun rentalCreated(event: RentalCreated): Reservation {
+    private fun rentalCreated(event: RentalCreatedEvent): Reservation {
         return copy(
                 reservationStatus = ReservationStatus.COMPLETED,
                 rental = event.rental
@@ -144,10 +141,10 @@ data class Reservation private constructor(
         val newRental = rental.pickUpRental(truck)
 
         // apply the state mutation to the aggregate root
-        return rentalPickedUp(RentalPickedUp(reservationId, confirmationNumber!!, newRental)) // FIXME
+        return handleEvent(RentalPickedUpEvent(reservationId, confirmationNumber!!, newRental)) // FIXME
     }
 
-    private fun rentalPickedUp(event: RentalPickedUp): Reservation {
+    private fun rentalPickedUp(event: RentalPickedUpEvent): Reservation {
         return copy(rental = event.rental)
     }
 
@@ -160,20 +157,19 @@ data class Reservation private constructor(
         val newRental = rental.dropOffRental(dropOffDate, dropOffMileage)
 
         // apply the state mutation to the aggregate root
-        return rentalDroppedOff(RentalDroppedOff(reservationId, confirmationNumber!!, newRental, dropOffDate, dropOffMileage))
+        return handleEvent(RentalDroppedOffEvent(reservationId, confirmationNumber!!, newRental, dropOffDate, dropOffMileage))
     }
 
-    private fun rentalDroppedOff(event: RentalDroppedOff): Reservation {
+    private fun rentalDroppedOff(event: RentalDroppedOffEvent): Reservation {
         return copy(rental = event.rental)
     }
 
-    fun <T> handleEvent(event: T): Reservation {
+    fun handleEvent(event: EventType): Reservation {
         return when (event) {
-            is ReservationConfirmed -> reservationConfirmed(event)
-            is RentalCreated -> rentalCreated(event)
-            is RentalPickedUp -> rentalPickedUp(event)
-            is RentalDroppedOff -> rentalDroppedOff(event)
-            else -> throw IllegalArgumentException("Unexpected event type")
+            is ReservationConfirmedEvent -> reservationConfirmed(event)
+            is RentalCreatedEvent -> rentalCreated(event)
+            is RentalPickedUpEvent -> rentalPickedUp(event)
+            is RentalDroppedOffEvent -> rentalDroppedOff(event)
         }
     }
 }

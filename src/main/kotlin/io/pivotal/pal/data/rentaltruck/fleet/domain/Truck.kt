@@ -1,7 +1,7 @@
 package io.pivotal.pal.data.rentaltruck.fleet.domain
 
-import io.pivotal.pal.data.rentaltruck.event.RentalDroppedOff
-import io.pivotal.pal.data.rentaltruck.event.RentalPickedUp
+import io.pivotal.pal.data.rentaltruck.event.RentalDroppedOffEvent
+import io.pivotal.pal.data.rentaltruck.event.RentalPickedUpEvent
 import io.pivotal.pal.data.rentaltruck.event.TruckPurchased
 import io.pivotal.pal.data.rentaltruck.generateRandomString
 import org.springframework.data.annotation.CreatedDate
@@ -66,11 +66,11 @@ data class Truck(
     }
 
     // FIXME: the fleet context should not be familiar with rentals (maybe)
-    private fun rentalPickedUp(event: RentalPickedUp): Truck {
+    private fun rentalPickedUp(event: RentalPickedUpEvent): Truck {
         return copy(status = TruckStatus.RENTED)
     }
 
-    private fun rentalDroppedOff(event: RentalDroppedOff): Truck {
+    private fun rentalDroppedOff(event: RentalDroppedOffEvent): Truck {
         return copy(
                 status = TruckStatus.AVAILABLE,
                 mileage = event.dropOffMileage
@@ -80,8 +80,8 @@ data class Truck(
     fun <T> handleEvent(event: T): Truck {
         return when (event) {
             is TruckPurchased -> truckPurchased(event)
-            is RentalPickedUp -> rentalPickedUp(event)
-            is RentalDroppedOff -> rentalDroppedOff(event)
+            is RentalPickedUpEvent -> rentalPickedUp(event)
+            is RentalDroppedOffEvent -> rentalDroppedOff(event)
             else -> throw IllegalArgumentException("Unexpected event type")
         }
     }
