@@ -35,8 +35,8 @@ class DropOffRentalCommandHandler(
                     if (tuple.t2.rental == null) {
                         throw IllegalStateException("reservation ${tuple.t1.confirmationNumber} is not yet rented")
                     }
-                    if (tuple.t2.rental!!.status != RentalStatus.ACTIVE) {
-                        throw IllegalStateException("rental ${tuple.t1.confirmationNumber} is not currently active, status=${tuple.t2.rental!!.status}")
+                    if (tuple.t2.rental!!.rentalStatus != RentalStatus.ACTIVE) {
+                        throw IllegalStateException("rental ${tuple.t1.confirmationNumber} is not currently active, rentalStatus=${tuple.t2.rental!!.rentalStatus}")
                     }
 
                     return@map tuple

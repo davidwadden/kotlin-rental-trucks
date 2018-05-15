@@ -1,7 +1,7 @@
 package io.pivotal.pal.data.rentaltruck.fleet.domain
 
-import io.pivotal.pal.data.rentaltruck.event.RentalDroppedOffEvent
-import io.pivotal.pal.data.rentaltruck.event.RentalPickedUpEvent
+import io.pivotal.pal.data.rentaltruck.reservation.domain.RentalDroppedOffEvent
+import io.pivotal.pal.data.rentaltruck.reservation.domain.RentalPickedUpEvent
 import io.pivotal.pal.data.rentaltruck.event.TruckPurchased
 import io.pivotal.pal.data.rentaltruck.generateRandomString
 import org.springframework.data.annotation.CreatedDate

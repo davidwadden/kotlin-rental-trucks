@@ -1,6 +1,5 @@
 package io.pivotal.pal.data.rentaltruck.reservation.domain
 
-import io.pivotal.pal.data.rentaltruck.event.*
 import io.pivotal.pal.data.rentaltruck.generateRandomString
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
@@ -107,25 +106,34 @@ data class Reservation private constructor(
         // generate confirmation number
         val rentalId = generateRandomString(6)
 
-        // create the rental so it can be embedded into the event for potential subscribers
-        val newRental = Rental(
+        // apply the state mutation to the aggregate root
+        return handleEvent(RentalCreatedEvent(
+                reservationId = reservationId,
                 rentalId = rentalId,
                 confirmationNumber = confirmationNumber,
-                status = RentalStatus.PENDING,
-                reservation = this,
+                rentalStatus = RentalStatus.PENDING,
                 pickUpDate = pickUpDate,
                 scheduledDropOffDate = dropOffDate,
                 customerName = customerName
-        )
-
-        // apply the state mutation to the aggregate root
-        return handleEvent(RentalCreatedEvent(reservationId = reservationId, rental = newRental))
+        ))
     }
 
     private fun rentalCreated(event: RentalCreatedEvent): Reservation {
+        // create the rental so it can be embedded into the event for potential subscribers
+        val newRental = Rental(
+                rentalId = event.rentalId,
+                confirmationNumber = event.confirmationNumber,
+                status = event.rentalStatus,
+                reservation = this,
+                pickUpDate = event.pickUpDate,
+                scheduledDropOffDate = event.scheduledDropOffDate,
+                customerName = event.customerName
+        )
+
+        // copy jpa entity with reference to updated rental object
         return copy(
                 reservationStatus = ReservationStatus.COMPLETED,
-                rental = event.rental
+                rental = newRental
         )
     }
 
@@ -133,18 +141,20 @@ data class Reservation private constructor(
         if (rental == null) {
             throw IllegalStateException("Rental has not been created, cannot pick up rental")
         }
-        if (rental.status != RentalStatus.PENDING) {
-            throw IllegalStateException("Rental is not in the expected Pending status.  status=${rental.status}")
+        if (rental.rentalStatus != RentalStatus.PENDING) {
+            throw IllegalStateException("Rental is not in the expected Pending rentalStatus.  rentalStatus=${rental.rentalStatus}")
         }
 
         // delegate business logic to related entities
         val newRental = rental.pickUpRental(truck)
 
         // apply the state mutation to the aggregate root
-        return handleEvent(RentalPickedUpEvent(reservationId, confirmationNumber!!, newRental)) // FIXME
+        return handleEvent(RentalPickedUpEvent(reservationId, confirmationNumber!!, newRental.rentalStatus, truck.truckId, newRental))
     }
 
     private fun rentalPickedUp(event: RentalPickedUpEvent): Reservation {
+
+
         return copy(rental = event.rental)
     }
 
@@ -164,7 +174,7 @@ data class Reservation private constructor(
         return copy(rental = event.rental)
     }
 
-    fun handleEvent(event: EventType): Reservation {
+    fun handleEvent(event: ReservationEvent): Reservation {
         return when (event) {
             is ReservationConfirmedEvent -> reservationConfirmed(event)
             is RentalCreatedEvent -> rentalCreated(event)

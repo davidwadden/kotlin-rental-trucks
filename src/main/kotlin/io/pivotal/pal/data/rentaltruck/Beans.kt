@@ -4,8 +4,8 @@ import io.pivotal.pal.data.framework.event.AsyncEventHandler
 import io.pivotal.pal.data.framework.event.AsyncEventPublisher
 import io.pivotal.pal.data.framework.event.AsyncEventSubscriberAdapter
 import io.pivotal.pal.data.framework.event.DefaultAsyncEventPublisher
-import io.pivotal.pal.data.rentaltruck.event.EventType
-import io.pivotal.pal.data.rentaltruck.fleet.handler.EventTypeEventHandler
+import io.pivotal.pal.data.rentaltruck.reservation.domain.ReservationEvent
+import io.pivotal.pal.data.rentaltruck.fleet.handler.ReservationEventHandler
 import io.pivotal.pal.data.rentaltruck.reservation.command.CreateRentalCommandHandler
 import io.pivotal.pal.data.rentaltruck.reservation.command.CreateReservationCommandHandler
 import io.pivotal.pal.data.rentaltruck.reservation.command.DropOffRentalCommandHandler
@@ -22,13 +22,13 @@ fun beans() = beans {
         Routes(ref(), ref(), ref()).router()
     }
 
-    bean<AsyncEventPublisher<EventType>> {
+    bean<AsyncEventPublisher<ReservationEvent>> {
         DefaultAsyncEventPublisher("event-type")
     }
-    bean<AsyncEventHandler<EventType>> {
-        EventTypeEventHandler()
+    bean<AsyncEventHandler<ReservationEvent>> {
+        ReservationEventHandler()
     }
-    bean<AsyncEventSubscriberAdapter<EventType>> {
+    bean<AsyncEventSubscriberAdapter<ReservationEvent>> {
         AsyncEventSubscriberAdapter("event-type", ref())
     }
 

@@ -24,8 +24,8 @@ data class Rental private constructor(
         val confirmationNumber: String,
 
         @Enumerated(value = EnumType.STRING)
-        @Column(name = "status", nullable = false, updatable = true, length = 20)
-        val status: RentalStatus,
+        @Column(name = "rental_status", nullable = false, updatable = true, length = 20)
+        val rentalStatus: RentalStatus,
 
         @OneToOne(fetch = FetchType.LAZY, optional = false)
         @JoinColumn(
@@ -70,7 +70,7 @@ data class Rental private constructor(
     ) : this(
             rentalId = rentalId,
             confirmationNumber = confirmationNumber,
-            status = status,
+            rentalStatus = status,
             reservation = reservation,
             truck = null,
             pickUpDate = pickUpDate,
@@ -91,7 +91,7 @@ data class Rental private constructor(
         private set
 
     fun pickUpRental(truck: Truck): Rental {
-        if (status != RentalStatus.PENDING) {
+        if (rentalStatus != RentalStatus.PENDING) {
             throw IllegalStateException("Can only pick up rental on Pending rental")
         }
         if (truck.rental != null) {
@@ -101,18 +101,18 @@ data class Rental private constructor(
         val newTruck = truck.assignedToRental()
 
         return copy(
-                status = RentalStatus.ACTIVE,
+                rentalStatus = RentalStatus.ACTIVE,
                 truck = newTruck
         )
     }
 
     fun dropOffRental(dropOffDate: LocalDate, dropOffMileage: Int): Rental {
-        if (status != RentalStatus.ACTIVE) {
+        if (rentalStatus != RentalStatus.ACTIVE) {
             throw IllegalStateException("Can only drop off Active rentals")
         }
 
         return copy(
-                status = RentalStatus.COMPLETED,
+                rentalStatus = RentalStatus.COMPLETED,
                 dropOffDate = dropOffDate,
                 dropOffMileage = dropOffMileage
         )
