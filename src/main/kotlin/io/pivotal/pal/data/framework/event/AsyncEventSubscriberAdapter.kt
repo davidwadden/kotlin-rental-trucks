@@ -94,6 +94,7 @@ class AsyncEventSubscriberAdapter<T>(
 
     @Throws(Exception::class)
     private fun handleException(e: Exception, waitTime: Long, retryCount: Int): Long {
+        @Suppress("NAME_SHADOWING")
         var waitTime = waitTime
         if (recoverableExceptions != null &&
                 !recoverableExceptions.isEmpty() &&
