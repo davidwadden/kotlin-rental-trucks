@@ -6,20 +6,20 @@ import org.springframework.util.Assert
 import java.util.concurrent.LinkedBlockingQueue
 
 class AsyncEventSubscriberAdapter<T>(
-        eventName: String,
-        private val handler: AsyncEventHandler<T>,
-        private val errorHandler: AsyncEventHandler<T>?,
-        private val maxRetryCount: Int,
-        private val initialRetryWaitTime: Long,
-        private val retryWaitTimeMultiplier: Int,
-        private val recoverableExceptions: Set<Class<*>>?
+    eventName: String,
+    private val handler: AsyncEventHandler<T>,
+    private val errorHandler: AsyncEventHandler<T>?,
+    private val maxRetryCount: Int,
+    private val initialRetryWaitTime: Long,
+    private val retryWaitTimeMultiplier: Int,
+    private val recoverableExceptions: Set<Class<*>>?
 ) : AsyncEventChannel(eventName), SmartLifecycle {
 
     constructor(eventName: String, handler: AsyncEventHandler<T>) :
-            this(eventName, handler, null, 0, 0, 0, null)
+        this(eventName, handler, null, 0, 0, 0, null)
 
     constructor(eventName: String, handler: AsyncEventHandler<T>, errorHandler: AsyncEventHandler<T>) :
-            this(eventName, handler, errorHandler, 0, 0, 0, null)
+        this(eventName, handler, errorHandler, 0, 0, 0, null)
 
     private val queue = LinkedBlockingQueue<T>()
     private var running = false
@@ -97,8 +97,8 @@ class AsyncEventSubscriberAdapter<T>(
         @Suppress("NAME_SHADOWING")
         var waitTime = waitTime
         if (recoverableExceptions != null &&
-                !recoverableExceptions.isEmpty() &&
-                !recoverableExceptions.contains(e.javaClass)) {
+            !recoverableExceptions.isEmpty() &&
+            !recoverableExceptions.contains(e.javaClass)) {
             // if recoverable exceptions specified and this exception is not recoverable, rethrow
             throw e
         }

@@ -36,8 +36,8 @@ repositories {
 //This is necessary to make the version accessible in other places
 val kotlinVersion: String? by extra {
     buildscript.configurations["classpath"]
-            .resolvedConfiguration.firstLevelModuleDependencies
-            .find { it.moduleName == "kotlin-gradle-plugin" }?.moduleVersion
+        .resolvedConfiguration.firstLevelModuleDependencies
+        .find { it.moduleName == "kotlin-gradle-plugin" }?.moduleVersion
 }
 
 val awaitilityVersion: String by project

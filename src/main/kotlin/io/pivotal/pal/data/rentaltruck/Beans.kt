@@ -15,6 +15,6 @@ fun beans() = beans {
 @Suppress("unused")
 class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext> {
     override fun initialize(context: GenericApplicationContext) =
-            beans().initialize(context)
+        beans().initialize(context)
 
 }

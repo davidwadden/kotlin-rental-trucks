@@ -8,8 +8,8 @@ class SpringMessagingAsyncEventHandler<T>(private val eventName: String, private
 
     override fun onEvent(event: T) {
         val message = MessageBuilder.withPayload(event)
-                .setHeader("eventName", eventName)
-                .build()
+            .setHeader("eventName", eventName)
+            .build()
         channel.send(message)
     }
 }

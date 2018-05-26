@@ -3,22 +3,22 @@ package io.pivotal.pal.data.framework.event
 import org.springframework.util.Assert
 
 class SyncEventSubscriberAdapter<C, R>(
-        eventName: String,
-        private val handler: SyncEventHandler<C, R>,
-        private val errorHandler: SyncEventHandler<C, R>?,
-        private val maxRetryCount: Int,
-        private val initialRetryWaitTime: Long,
-        private val retryWaitTimeMultiplier: Int,
-        private val recoverableExceptions: Set<Class<*>>?
+    eventName: String,
+    private val handler: SyncEventHandler<C, R>,
+    private val errorHandler: SyncEventHandler<C, R>?,
+    private val maxRetryCount: Int,
+    private val initialRetryWaitTime: Long,
+    private val retryWaitTimeMultiplier: Int,
+    private val recoverableExceptions: Set<Class<*>>?
 ) : SyncEventChannel(eventName) {
 
     private val lock = java.lang.Object()
 
     constructor(eventName: String, handler: SyncEventHandler<C, R>) :
-            this(eventName, handler, null, 0, 0, 0, null)
+        this(eventName, handler, null, 0, 0, 0, null)
 
     constructor(eventName: String, handler: SyncEventHandler<C, R>, errorHandler: SyncEventHandler<C, R>) :
-            this(eventName, handler, errorHandler, 0, 0, 0, null)
+        this(eventName, handler, errorHandler, 0, 0, 0, null)
 
     init {
         Assert.hasText(eventName, "Event name must be specified")
@@ -44,8 +44,8 @@ class SyncEventSubscriberAdapter<C, R>(
                     return handler.onEvent(event)
                 } catch (t: Exception) {
                     if (recoverableExceptions != null &&
-                            !recoverableExceptions.isEmpty() &&
-                            !recoverableExceptions.contains(t.javaClass)) {
+                        !recoverableExceptions.isEmpty() &&
+                        !recoverableExceptions.contains(t.javaClass)) {
                         throw t
                     }
 

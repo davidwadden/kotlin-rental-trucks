@@ -11,8 +11,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @SpringBootTest
 internal class ApplicationTest {
 
-    @Test
-    fun `wires the context`() {
-    }
+    @Test fun `wires the context`() {}
 
 }

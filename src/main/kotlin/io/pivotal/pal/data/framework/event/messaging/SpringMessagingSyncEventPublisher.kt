@@ -5,9 +5,9 @@ import org.springframework.messaging.*
 import org.springframework.messaging.support.MessageBuilder
 
 class SpringMessagingSyncEventPublisher<C : Any, R : Any?>(
-        eventName: String,
-        input: SubscribableChannel,
-        private val output: MessageChannel
+    eventName: String,
+    input: SubscribableChannel,
+    private val output: MessageChannel
 ) : DefaultSyncEventPublisher<C, R>(eventName), MessageHandler {
 
     init {
@@ -23,8 +23,8 @@ class SpringMessagingSyncEventPublisher<C : Any, R : Any?>(
 
         if (response != null) {
             val outputMessage = MessageBuilder.withPayload(response)
-                    .setHeader("eventName", eventName)
-                    .build()
+                .setHeader("eventName", eventName)
+                .build()
             output.send(outputMessage)
         }
     }
