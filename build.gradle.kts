@@ -2,17 +2,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     val kotlinVersion = "1.2.41"
-    val kotlinDslVersion = "0.17.3"
-    val springBootVersion = "2.0.2.RELEASE"
-    val springDependencyManagementPluginVersion = "1.0.5.RELEASE"
-
-    id("org.gradle.kotlin.kotlin-dsl") version kotlinDslVersion
-    id("org.springframework.boot") version springBootVersion
-    id("org.jetbrains.kotlin.plugin.spring") version kotlinVersion
-    id("org.jetbrains.kotlin.plugin.jpa") version kotlinVersion
-    id("io.spring.dependency-management") version springDependencyManagementPluginVersion
+    id("org.gradle.kotlin.kotlin-dsl") version "0.17.3"
+    id("org.springframework.boot") version "2.0.2.RELEASE"
+    id("io.spring.dependency-management") version "1.0.5.RELEASE"
 
     kotlin("jvm") version kotlinVersion
+    kotlin("plugin.spring") version kotlinVersion
+    kotlin("plugin.jpa") version kotlinVersion
     java
     eclipse
 }
@@ -25,6 +21,10 @@ tasks.withType<KotlinCompile> {
         freeCompilerArgs = listOf("-Xjsr305=strict")
         jvmTarget = "1.8"
     }
+}
+
+val test by tasks.getting(Test::class) {
+    useJUnitPlatform()
 }
 
 repositories {
@@ -43,12 +43,13 @@ val kotlinVersion: String? by extra {
 val awaitilityVersion: String by project
 val mockitoKotlinVersion: String by project
 val atriumVersion: String by project
-val junit4Version: String by project
-val junitVintageVersion: String by project
 val junitPlatformVersion: String by project
 val junitJupiterVersion: String by project
 
 dependencies {
+    embeddedKotlin(kotlin("stdlib-jdk8", kotlinVersion))
+    embeddedKotlin(kotlin("reflect", kotlinVersion))
+
     implementation(kotlin("stdlib-jdk8", kotlinVersion))
     implementation(kotlin("reflect", kotlinVersion))
 
@@ -63,7 +64,9 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.springframework.boot:spring-boot-devtools")
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(module = "junit")
+    }
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.awaitility:awaitility")
     testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin")
@@ -74,19 +77,13 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
-    testImplementation("junit:junit")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine") {
-        because("allows JUnit 3 and JUnit 4 tests to run")
-    }
-
     testRuntimeOnly("org.junit.platform:junit-platform-launcher") {
         because("allows tests to run from IDEs that bundle older version of launcher")
     }
 
     constraints {
-        // TODO: figure out how to set Kotlin version properly
         embeddedKotlin("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
-        embeddedKotlin("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+        embeddedKotlin("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
         testCompileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
         testCompileOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
 
@@ -96,7 +93,6 @@ dependencies {
         testImplementation("ch.tutteli:atrium-verbs:$atriumVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
-        testImplementation("org.junit.vintage:junit-vintage-engine:$junitVintageVersion")
         testImplementation("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
     }
 
