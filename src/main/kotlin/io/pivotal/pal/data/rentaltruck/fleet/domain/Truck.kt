@@ -36,6 +36,16 @@ data class Truck(
         null
     )
 
+    @CreatedDate
+    @Column(name = "created_date", nullable = false, updatable = false, columnDefinition = "timestamp with time zone")
+    lateinit var createdDate: Instant
+        private set
+
+    @LastModifiedDate
+    @Column(name = "last_modified_date", nullable = false, columnDefinition = "timestamp with time zone")
+    lateinit var lastModifiedDate: Instant
+        private set
+
     companion object {
 
         fun buyTruck(truckIdFactory: TruckIdFactory, truckName: String, mileage: Int): Truck {
@@ -54,15 +64,17 @@ data class Truck(
         return this
     }
 
-    @CreatedDate
-    @Column(name = "created_date", nullable = false, updatable = false, columnDefinition = "timestamp with time zone")
-    lateinit var createdDate: Instant
-        private set
+    fun inspectTruck(mileage: Int): Truck {
+        // TODO: what is a valid business invariant?
 
-    @LastModifiedDate
-    @Column(name = "last_modified_date", nullable = false, columnDefinition = "timestamp with time zone")
-    lateinit var lastModifiedDate: Instant
-        private set
+        return truckInspected(TruckInspectedEvent(truckId!!, mileage))
+    }
+
+    private fun truckInspected(event: TruckInspectedEvent): Truck {
+        mileage = event.mileage
+        return this
+    }
+
 }
 
 interface TruckIdFactory {
@@ -75,9 +87,16 @@ data class TruckBoughtEvent(
     val mileage: Int
 )
 
+data class TruckInspectedEvent(
+    val truckId: UUID,
+    val mileage: Int
+)
+
 enum class TruckStatus {
     AVAILABLE, RENTED, MAINTENANCE
 }
 
 @Repository("fleetTruckRepository")
-interface TruckRepository : CrudRepository<Truck, UUID>
+interface TruckRepository : CrudRepository<Truck, UUID> {
+    fun findByTruckId(truckId: UUID): Truck?
+}
