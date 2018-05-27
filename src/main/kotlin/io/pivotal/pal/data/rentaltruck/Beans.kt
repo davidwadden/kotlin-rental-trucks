@@ -3,6 +3,7 @@ package io.pivotal.pal.data.rentaltruck
 import io.pivotal.pal.data.rentaltruck.fleet.command.BuyTruckCommandHandler
 import io.pivotal.pal.data.rentaltruck.fleet.command.InspectTruckCommandHandler
 import io.pivotal.pal.data.rentaltruck.fleet.command.RandomTruckIdFactory
+import io.pivotal.pal.data.rentaltruck.fleet.domain.EventSourcedTruckRepository
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.context.support.beans
@@ -12,6 +13,8 @@ fun beans() = beans {
 
     bean<BuyTruckCommandHandler>()
     bean<InspectTruckCommandHandler>()
+
+    bean<EventSourcedTruckRepository>()
 
     bean {
         Routes(ref(), ref()).router()
