@@ -1,4 +1,4 @@
-package io.pivotal.pal.data.rentaltruck.fleet.domain
+package io.pivotal.pal.data.framework.store
 
 import org.springframework.data.repository.CrudRepository
 import java.io.Serializable

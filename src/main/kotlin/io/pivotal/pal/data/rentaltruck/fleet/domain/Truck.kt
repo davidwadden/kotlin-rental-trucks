@@ -1,17 +1,17 @@
 package io.pivotal.pal.data.rentaltruck.fleet.domain
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.pivotal.pal.data.framework.store.AggregateRoot
+import io.pivotal.pal.data.framework.store.DomainEvent
+import io.pivotal.pal.data.framework.store.EventStoreRepositoryAdapter
 import io.pivotal.pal.data.rentaltruck.loggerFor
-import org.springframework.data.repository.CrudRepository
-import org.springframework.data.repository.NoRepositoryBean
 import java.util.*
 
 data class Truck(
-    var truckId: UUID?,
+    override var id: UUID?,
     var truckName: String?,
     var status: TruckStatus?,
     var mileage: Int?
-) {
+) : AggregateRoot<Truck>() {
 
     constructor() : this(
         null,
@@ -20,9 +20,15 @@ data class Truck(
         null
     )
 
-    @kotlin.jvm.Transient
-    @javax.persistence.Transient
-    val domainEvents: MutableList<DomainEvent> = mutableListOf()
+    override fun handleEvent(event: DomainEvent): Truck {
+        loggerFor(Truck::class.java).info("handling event=$event")
+
+        return when (event) {
+            is TruckBoughtEvent -> truckBought(event)
+            is TruckInspectedEvent -> truckInspected(event)
+            else -> throw IllegalArgumentException("Unexpected event received by truck: event=$event")
+        }
+    }
 
     companion object {
 
@@ -39,7 +45,7 @@ data class Truck(
         domainEvents.add(event)
 
         // apply state mutations
-        truckId = event.truckId
+        id = event.truckId
         truckName = event.truckName
         status = TruckStatus.MAINTENANCE
         mileage = event.mileage
@@ -48,8 +54,7 @@ data class Truck(
     }
 
     fun inspectTruck(mileage: Int): Truck {
-        // TODO: what is a valid business invariant?
-        val truckId = truckId ?: throw IllegalStateException("truck not initialized with id")
+        val truckId = id ?: throw IllegalStateException("truck not initialized with id")
 
         return truckInspected(TruckInspectedEvent(truckId, mileage))
     }
@@ -63,15 +68,6 @@ data class Truck(
 
         return this
     }
-
-    fun handleEvent(event: Any): Truck {
-        return when (event) {
-            is TruckBoughtEvent -> truckBought(event)
-            is TruckInspectedEvent -> truckInspected(event)
-            else -> throw IllegalArgumentException("Unexpected event received by truck: event=$event")
-        }
-    }
-
 }
 
 interface TruckIdFactory {
@@ -93,8 +89,4 @@ enum class TruckStatus {
     AVAILABLE, RENTED, MAINTENANCE
 }
 
-@NoRepositoryBean
-interface TruckRepository : CrudRepository<Truck, UUID> {
-    fun findByTruckId(truckId: UUID): Truck?
-}
-
+typealias TruckRepository = EventStoreRepositoryAdapter<Truck, UUID>

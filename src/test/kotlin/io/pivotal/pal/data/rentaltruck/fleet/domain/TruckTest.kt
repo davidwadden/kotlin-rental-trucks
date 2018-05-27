@@ -22,7 +22,7 @@ internal class TruckTest {
         val truck = Truck.buyTruck(mockTruckIdFactory, "some-truck-name", 10000)
 
         assert(truck) {
-            property(subject::truckId).isNotNull { toBe(truckId) }
+            property(subject::id).isNotNull { toBe(truckId) }
             property(subject::truckName).isNotNull { toBe("some-truck-name") }
             property(subject::status).isNotNull { toBe(TruckStatus.MAINTENANCE) }
             property(subject::mileage).isNotNull { toBe(10000) }
@@ -47,7 +47,7 @@ internal class TruckTest {
             truck = truck.inspectTruck(20000)
 
             assert(truck) {
-                property(subject::truckId).isNotNull { toBe(truckId) }
+                property(subject::id).isNotNull { toBe(truckId) }
                 property(subject::mileage).isNotNull { toBe(20000) }
             }
         }
