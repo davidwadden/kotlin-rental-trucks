@@ -23,7 +23,7 @@ fun beans() = beans {
     bean<ListTrucksQueryHandler>()
 
     bean<TruckRepository> {
-        EventStoreRepositoryAdapter(ref())
+        EventStoreRepositoryAdapter(ref(), ref())
     }
 
 
@@ -34,7 +34,7 @@ fun beans() = beans {
     bean<ListRentalsQueryHandler>()
 
     bean<RentalRepository> {
-        EventStoreRepositoryAdapter(ref())
+        EventStoreRepositoryAdapter(ref(), ref())
     }
 
 

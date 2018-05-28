@@ -1,6 +1,6 @@
 package io.pivotal.pal.data.framework.store
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.pivotal.pal.data.rentaltruck.loggerFor
 import org.springframework.data.repository.NoRepositoryBean
 import org.springframework.data.repository.Repository
@@ -47,12 +47,9 @@ interface EventSourcedRepository<T, ID> : Repository<T, ID> where T : AggregateR
 }
 
 open class EventStoreRepositoryAdapter<T>(
-    private val eventStoreRepository: EventStoreRepository
+    private val eventStoreRepository: EventStoreRepository,
+    private val objectMapper: ObjectMapper
 ) : EventSourcedRepository<T, UUID> where T : AggregateRoot<T> {
-
-    companion object {
-        private val objectMapper = jacksonObjectMapper()
-    }
 
     override fun <S : T> save(entity: S): S {
         loggerFor(EventStoreRepositoryAdapter::class.java).debug("saving entity=$entity")
