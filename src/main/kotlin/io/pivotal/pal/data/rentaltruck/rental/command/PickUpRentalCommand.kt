@@ -13,7 +13,6 @@ import java.util.*
 internal data class PickUpRentalCommandDto(
     val truckId: String,
     val pickUpDate: LocalDate,
-    val dropOffDate: LocalDate,
     val customerName: String
 )
 
@@ -26,7 +25,7 @@ class PickUpRentalCommandHandler(
 
         return req
             .bodyToMono(PickUpRentalCommandDto::class.java)
-            .map { Rental.pickUpRental(randomRentalIdFactory, UUID.fromString(it.truckId), it.pickUpDate, it.dropOffDate, it.customerName) }
+            .map { Rental.pickUpRental(randomRentalIdFactory, UUID.fromString(it.truckId), it.pickUpDate, it.customerName) }
             .map { rentalRepository.save(it) }
             .flatMap {
                 ServerResponse
