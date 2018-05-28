@@ -25,6 +25,7 @@ data class Rental internal constructor(
     }
 
     companion object {
+
         fun pickUpRental(rentalIdFactory: RentalIdFactory,
                          truckId: UUID,
                          pickUpDate: LocalDate,

@@ -3,7 +3,6 @@ package io.pivotal.pal.data.rentaltruck.fleet.domain
 import io.pivotal.pal.data.framework.store.AggregateRoot
 import io.pivotal.pal.data.framework.store.DomainEvent
 import io.pivotal.pal.data.framework.store.EventSourcedRepository
-import io.pivotal.pal.data.framework.store.EventStoreRepositoryAdapter
 import io.pivotal.pal.data.rentaltruck.loggerFor
 import java.util.*
 

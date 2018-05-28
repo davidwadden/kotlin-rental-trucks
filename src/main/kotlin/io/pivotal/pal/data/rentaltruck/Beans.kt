@@ -6,9 +6,10 @@ import io.pivotal.pal.data.rentaltruck.fleet.command.InspectTruckCommandHandler
 import io.pivotal.pal.data.rentaltruck.fleet.command.RandomTruckIdFactory
 import io.pivotal.pal.data.rentaltruck.fleet.domain.TruckRepository
 import io.pivotal.pal.data.rentaltruck.fleet.query.ListTrucksQueryHandler
-import io.pivotal.pal.data.rentaltruck.rental.command.RandomRentalIdFactory
 import io.pivotal.pal.data.rentaltruck.rental.command.PickUpRentalCommandHandler
+import io.pivotal.pal.data.rentaltruck.rental.command.RandomRentalIdFactory
 import io.pivotal.pal.data.rentaltruck.rental.domain.RentalRepository
+import io.pivotal.pal.data.rentaltruck.rental.query.ListRentalsQueryHandler
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.context.support.beans
@@ -30,13 +31,15 @@ fun beans() = beans {
 
     bean<PickUpRentalCommandHandler>()
 
+    bean<ListRentalsQueryHandler>()
+
     bean<RentalRepository> {
         EventStoreRepositoryAdapter(ref())
     }
 
 
     bean {
-        Routes(ref(), ref(), ref(), ref()).router()
+        Routes(ref(), ref(), ref(), ref(), ref()).router()
     }
 }
 
