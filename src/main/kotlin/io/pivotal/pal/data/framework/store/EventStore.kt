@@ -20,6 +20,7 @@ data class AggregateEntity(
     val type: String
 ) {
 
+    @OrderBy("version ASC")
     @OneToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(
         name = "aggregate_id",
