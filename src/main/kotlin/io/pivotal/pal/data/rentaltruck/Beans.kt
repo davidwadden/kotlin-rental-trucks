@@ -1,5 +1,6 @@
 package io.pivotal.pal.data.rentaltruck
 
+import io.pivotal.pal.data.framework.store.EventStoreRepositoryAdapter
 import io.pivotal.pal.data.rentaltruck.fleet.command.BuyTruckCommandHandler
 import io.pivotal.pal.data.rentaltruck.fleet.command.InspectTruckCommandHandler
 import io.pivotal.pal.data.rentaltruck.fleet.command.RandomTruckIdFactory
@@ -17,8 +18,8 @@ fun beans() = beans {
 
     bean<ListTrucksQueryHandler>()
 
-    bean {
-        TruckRepository(ref())
+    bean<TruckRepository> {
+        EventStoreRepositoryAdapter(ref())
     }
 
     bean {

@@ -21,7 +21,7 @@ class InspectTruckCommandHandler(
         return req
             .bodyToMono(InspectTruckCommandDto::class.java)
             .map { commandDto ->
-                val truck = truckRepository.findByAggregateId(truckId)
+                val truck = truckRepository.findById(truckId)
                     ?: throw IllegalArgumentException("No truck found for truckId=$truckId")
                 Pair(commandDto, truck)
             }

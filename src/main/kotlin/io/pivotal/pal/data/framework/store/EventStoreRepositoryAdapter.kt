@@ -2,13 +2,53 @@ package io.pivotal.pal.data.framework.store
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.pivotal.pal.data.rentaltruck.loggerFor
-import org.springframework.data.repository.CrudRepository
+import org.springframework.data.repository.NoRepositoryBean
+import org.springframework.data.repository.Repository
 import java.lang.reflect.Constructor
 import java.util.*
 
+@Suppress("DeprecatedCallableAddReplaceWith")
+@NoRepositoryBean
+interface EventSourcedRepository<T, ID> : Repository<T, ID> where T : AggregateRoot<T>, ID : UUID {
+
+    fun <S : T> save(entity: S): S
+
+    fun <S : T> saveAll(entities: MutableIterable<S>): MutableIterable<S>
+
+    fun findById(id: ID): T?
+
+    fun existsById(id: ID): Boolean
+
+    fun findAll(): Iterable<T>
+
+    fun findAllById(ids: MutableIterable<ID>): MutableIterable<T>
+
+    fun count(): Long
+
+    @Deprecated("not available with event sourcing")
+    fun deleteById(id: ID) {
+        throw UnsupportedOperationException("#delete(entity) not defined for event store")
+    }
+
+    @Deprecated("not available with event sourcing")
+    fun delete(entity: T) {
+        throw UnsupportedOperationException("#delete(entity) not defined for event store")
+    }
+
+    @Deprecated("not available with event sourcing")
+    fun deleteAll(entities: MutableIterable<T>) {
+        throw UnsupportedOperationException("#delete(entity) not defined for event store")
+    }
+
+    @Deprecated("not available with event sourcing")
+    fun deleteAll() {
+        throw UnsupportedOperationException("#delete(entity) not defined for event store")
+    }
+}
+
 open class EventStoreRepositoryAdapter<T>(
     private val eventStoreRepository: EventStoreRepository
-) : CrudRepository<T, UUID> where T : AggregateRoot<T> {
+) : EventSourcedRepository<T, UUID> where T : AggregateRoot<T> {
 
     companion object {
         private val objectMapper = jacksonObjectMapper()
@@ -64,18 +104,6 @@ open class EventStoreRepositoryAdapter<T>(
             .toMutableSet()
     }
 
-    override fun deleteById(id: UUID) {
-        throw UnsupportedOperationException("#deleteById(id) not defined for event store")
-    }
-
-    override fun deleteAll(entities: MutableIterable<T>) {
-        throw UnsupportedOperationException("#deleteAll(entities) not defined for event store")
-    }
-
-    override fun deleteAll() {
-        throw UnsupportedOperationException("#deleteAll() not defined for event store")
-    }
-
     override fun <S : T> saveAll(entities: MutableIterable<S>): MutableIterable<S> {
 
         return entities
@@ -94,18 +122,10 @@ open class EventStoreRepositoryAdapter<T>(
 
     override fun existsById(id: UUID): Boolean = eventStoreRepository.existsById(id)
 
-    override fun findById(id: UUID): Optional<T> {
-        val aggregate = eventStoreRepository.findByAggregateId(id) ?: return Optional.empty()
+    override fun findById(id: UUID): T? {
+        val aggregate = eventStoreRepository.findByAggregateId(id) ?: return null
 
-        return Optional.ofNullable(replayEvents(aggregate))
-    }
-
-    override fun delete(entity: T) {
-        throw UnsupportedOperationException("#delete(entity) not defined for event store")
-    }
-
-    fun findByAggregateId(id: UUID): T? {
-        return findById(id).orElse(null)
+        return replayEvents(aggregate)
     }
 
     private fun replayEvents(aggregate: AggregateEntity): T {

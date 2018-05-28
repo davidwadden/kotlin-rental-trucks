@@ -2,11 +2,12 @@ package io.pivotal.pal.data.rentaltruck.fleet.domain
 
 import io.pivotal.pal.data.framework.store.AggregateRoot
 import io.pivotal.pal.data.framework.store.DomainEvent
+import io.pivotal.pal.data.framework.store.EventSourcedRepository
 import io.pivotal.pal.data.framework.store.EventStoreRepositoryAdapter
 import io.pivotal.pal.data.rentaltruck.loggerFor
 import java.util.*
 
-data class Truck(
+data class Truck internal constructor(
     override var id: UUID?,
     var truckName: String?,
     var status: TruckStatus?,
@@ -89,4 +90,4 @@ enum class TruckStatus {
     AVAILABLE, RENTED, MAINTENANCE
 }
 
-typealias TruckRepository = EventStoreRepositoryAdapter<Truck>
+typealias TruckRepository = EventSourcedRepository<Truck, UUID>
