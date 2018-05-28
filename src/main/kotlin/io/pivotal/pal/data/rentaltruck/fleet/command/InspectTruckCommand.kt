@@ -1,6 +1,5 @@
 package io.pivotal.pal.data.rentaltruck.fleet.command
 
-import io.pivotal.pal.data.rentaltruck.fleet.domain.Truck
 import io.pivotal.pal.data.rentaltruck.fleet.domain.TruckRepository
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse

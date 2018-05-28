@@ -6,9 +6,9 @@ import org.springframework.data.repository.CrudRepository
 import java.lang.reflect.Constructor
 import java.util.*
 
-class EventStoreRepositoryAdapter<T, ID>(
-    private val aggregateRepository: AggregateRepository
-) : CrudRepository<T, ID> where T : AggregateRoot<T>, ID : UUID {
+class EventStoreRepositoryAdapter<T>(
+    private val eventStoreRepository: EventStoreRepository
+) : CrudRepository<T, UUID> where T : AggregateRoot<T> {
 
     companion object {
         private val objectMapper = jacksonObjectMapper()
@@ -19,7 +19,7 @@ class EventStoreRepositoryAdapter<T, ID>(
 
         // fetch existing aggregate from aggregate repository
         val entityId = entity.id!!
-        var aggregate = aggregateRepository.findByAggregateId(entityId)
+        var aggregate = eventStoreRepository.findByAggregateId(entityId)
 
         // if does not exist, create using no-arg constructor of S
         if (aggregate == null) {
@@ -52,19 +52,19 @@ class EventStoreRepositoryAdapter<T, ID>(
         aggregate.version = eventVersion + entity.domainEvents.size - (eventVersion + 1)
 
         // save to event store
-        aggregateRepository.save(aggregate)
+        eventStoreRepository.save(aggregate)
 
         return entity
     }
 
     override fun findAll(): MutableIterable<T> {
 
-        return aggregateRepository.findAll()
+        return eventStoreRepository.findAll()
             .map { replayEvents(it) }
             .toMutableSet()
     }
 
-    override fun deleteById(id: ID) {
+    override fun deleteById(id: UUID) {
         throw UnsupportedOperationException("#deleteById(id) not defined for event store")
     }
 
@@ -83,19 +83,19 @@ class EventStoreRepositoryAdapter<T, ID>(
             .toMutableSet()
     }
 
-    override fun count(): Long = aggregateRepository.count()
+    override fun count(): Long = eventStoreRepository.count()
 
-    override fun findAllById(ids: MutableIterable<ID>): MutableIterable<T> {
+    override fun findAllById(ids: MutableIterable<UUID>): MutableIterable<T> {
 
-        return aggregateRepository.findAllById(ids)
+        return eventStoreRepository.findAllById(ids)
             .map { replayEvents(it) }
             .toMutableSet()
     }
 
-    override fun existsById(id: ID): Boolean = aggregateRepository.existsById(id)
+    override fun existsById(id: UUID): Boolean = eventStoreRepository.existsById(id)
 
-    override fun findById(id: ID): Optional<T> {
-        val aggregate = aggregateRepository.findByAggregateId(id) ?: return Optional.empty()
+    override fun findById(id: UUID): Optional<T> {
+        val aggregate = eventStoreRepository.findByAggregateId(id) ?: return Optional.empty()
 
         return Optional.ofNullable(replayEvents(aggregate))
     }
@@ -104,13 +104,13 @@ class EventStoreRepositoryAdapter<T, ID>(
         throw UnsupportedOperationException("#delete(entity) not defined for event store")
     }
 
-    fun findByAggregateId(id: ID): T? {
+    fun findByAggregateId(id: UUID): T? {
         return findById(id).orElse(null)
     }
 
     private fun replayEvents(aggregate: AggregateEntity): T {
         // initialize entity using type field on aggregate table
-        val entity: T = initializeAggregate(aggregate)
+        val entity: T = instantiateEntity(aggregate)
 
         // guard clause if no events found for given entity
         if (aggregate.events.size == 0) throw IllegalStateException("no events found for aggregate") // FIXME
@@ -118,14 +118,15 @@ class EventStoreRepositoryAdapter<T, ID>(
         // deserialize the data field on each event and send to handleEvent method
         aggregate
             .events
-            .map { jacksonObjectMapper().readValue(it.data, DomainEvent::class.java) }
+            .map { jacksonObjectMapper().readValue(it.dataBytes, DomainEvent::class.java) }
             .forEach { entity.handleEvent(it) }
 
         // return re-hydrated entity by way of replaying event source
         return entity
     }
 
-    private fun initializeAggregate(aggregate: AggregateEntity): T {
+    @Suppress("UNCHECKED_CAST")
+    private fun instantiateEntity(aggregate: AggregateEntity): T {
         val clazz: Class<*> = Class.forName(aggregate.type)
         val ctor: Constructor<*> = clazz.getConstructor()
         return ctor.newInstance() as T

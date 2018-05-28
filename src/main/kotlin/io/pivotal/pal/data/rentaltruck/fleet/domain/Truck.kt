@@ -89,4 +89,4 @@ enum class TruckStatus {
     AVAILABLE, RENTED, MAINTENANCE
 }
 
-typealias TruckRepository = EventStoreRepositoryAdapter<Truck, UUID>
+typealias TruckRepository = EventStoreRepositoryAdapter<Truck>

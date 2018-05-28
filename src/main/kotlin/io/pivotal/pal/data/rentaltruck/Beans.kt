@@ -29,7 +29,7 @@ fun beans() = beans {
 // See application.yml context.initializer.classes entry
 @Suppress("unused")
 class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext> {
+
     override fun initialize(context: GenericApplicationContext) =
         beans().initialize(context)
-
 }
