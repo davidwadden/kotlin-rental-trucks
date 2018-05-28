@@ -9,6 +9,7 @@ import io.pivotal.pal.data.rentaltruck.fleet.query.ListTrucksQueryHandler
 import io.pivotal.pal.data.rentaltruck.rental.command.PickUpRentalCommandHandler
 import io.pivotal.pal.data.rentaltruck.rental.command.RandomRentalIdFactory
 import io.pivotal.pal.data.rentaltruck.rental.domain.RentalRepository
+import io.pivotal.pal.data.rentaltruck.rental.domain.RentalTruckRepository
 import io.pivotal.pal.data.rentaltruck.rental.query.ListRentalsQueryHandler
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.support.GenericApplicationContext
@@ -34,6 +35,9 @@ fun beans() = beans {
     bean<ListRentalsQueryHandler>()
 
     bean<RentalRepository> {
+        EventStoreRepositoryAdapter(ref(), ref())
+    }
+    bean<RentalTruckRepository> {
         EventStoreRepositoryAdapter(ref(), ref())
     }
 
