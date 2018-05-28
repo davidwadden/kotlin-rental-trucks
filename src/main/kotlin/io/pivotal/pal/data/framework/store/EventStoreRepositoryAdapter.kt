@@ -6,7 +6,7 @@ import org.springframework.data.repository.CrudRepository
 import java.lang.reflect.Constructor
 import java.util.*
 
-class EventStoreRepositoryAdapter<T>(
+open class EventStoreRepositoryAdapter<T>(
     private val eventStoreRepository: EventStoreRepository
 ) : CrudRepository<T, UUID> where T : AggregateRoot<T> {
 
@@ -15,7 +15,7 @@ class EventStoreRepositoryAdapter<T>(
     }
 
     override fun <S : T> save(entity: S): S {
-        loggerFor(EventStoreRepositoryAdapter::class.java).info("saving entity=$entity")
+        loggerFor(EventStoreRepositoryAdapter::class.java).debug("saving entity=$entity")
 
         // fetch existing aggregate from aggregate repository
         val entityId = entity.id!!
@@ -41,7 +41,7 @@ class EventStoreRepositoryAdapter<T>(
             val eventBytes = objectMapper.writeValueAsBytes(domainEvent)
             val eventJson = objectMapper.writeValueAsString(domainEvent)
 
-            loggerFor(EventStoreRepositoryAdapter::class.java).info("serialized event=$eventJson")
+            loggerFor(EventStoreRepositoryAdapter::class.java).debug("serialized event=$eventJson")
 
             // append event entity to events relationship on aggregate
             val event = EventEntity(EventEntityKey(entityId, i), eventBytes, eventJson)
@@ -110,7 +110,7 @@ class EventStoreRepositoryAdapter<T>(
 
     private fun replayEvents(aggregate: AggregateEntity): T {
         // initialize entity using type field on aggregate table
-        val entity: T = instantiateEntity(aggregate)
+        val entity: T = instantiateEntity(aggregate.type)
 
         // guard clause if no events found for given entity
         if (aggregate.events.size == 0) throw IllegalStateException("no events found for aggregate") // FIXME
@@ -118,7 +118,7 @@ class EventStoreRepositoryAdapter<T>(
         // deserialize the data field on each event and send to handleEvent method
         aggregate
             .events
-            .map { jacksonObjectMapper().readValue(it.dataBytes, DomainEvent::class.java) }
+            .map { objectMapper.readValue(it.dataBytes, DomainEvent::class.java) }
             .forEach { entity.handleEvent(it) }
 
         // return re-hydrated entity by way of replaying event source
@@ -126,8 +126,8 @@ class EventStoreRepositoryAdapter<T>(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun instantiateEntity(aggregate: AggregateEntity): T {
-        val clazz: Class<*> = Class.forName(aggregate.type)
+    private fun instantiateEntity(type: String): T {
+        val clazz: Class<*> = Class.forName(type)
         val ctor: Constructor<*> = clazz.getConstructor()
         return ctor.newInstance() as T
     }

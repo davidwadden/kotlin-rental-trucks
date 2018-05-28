@@ -42,7 +42,7 @@ data class Truck(
 
     private fun truckBought(event: TruckBoughtEvent): Truck {
         // enqueue domain event
-        domainEvents.add(event)
+        enqueueEvent(event)
 
         // apply state mutations
         id = event.truckId
@@ -61,7 +61,7 @@ data class Truck(
 
     private fun truckInspected(event: TruckInspectedEvent): Truck {
         // enqueue domain event
-        domainEvents.add(event)
+        enqueueEvent(event)
 
         // apply state mutations
         mileage = event.mileage

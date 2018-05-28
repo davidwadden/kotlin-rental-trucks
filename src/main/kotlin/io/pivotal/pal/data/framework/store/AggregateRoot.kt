@@ -10,7 +10,15 @@ abstract class AggregateRoot<out A : AggregateRoot<A>> {
     @JsonIgnore
     @kotlin.jvm.Transient
     @javax.persistence.Transient
-    val domainEvents: MutableList<DomainEvent> = mutableListOf()
+    private val _domainEvents: MutableList<DomainEvent> = mutableListOf()
+
+    val domainEvents: List<DomainEvent>
+        get() = Collections.unmodifiableList(_domainEvents)
 
     abstract fun handleEvent(event: DomainEvent): A
+
+    protected fun enqueueEvent(event: DomainEvent) {
+        _domainEvents.add(event)
+    }
+
 }
