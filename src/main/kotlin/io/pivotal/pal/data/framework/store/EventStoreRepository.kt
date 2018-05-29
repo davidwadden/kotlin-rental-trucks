@@ -18,14 +18,14 @@ data class AggregateEntity(
     @Column(name = "aggregate_id", nullable = false, updatable = false, length = 36)
     val aggregateId: UUID,
 
-    @Column(name = "version", nullable = false, updatable = true)
-    var version: Int,
+    @Column(name = "current_version", nullable = false, updatable = true)
+    var currentVersion: Int,
 
     @Column(name = "type", nullable = false, updatable = false)
     val type: String
 ) {
 
-    @OrderBy("version ASC")
+    @OrderBy("current_version ASC")
     @OneToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(
         name = "aggregate_id",

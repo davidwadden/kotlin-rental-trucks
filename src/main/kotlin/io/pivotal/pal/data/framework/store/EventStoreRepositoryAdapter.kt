@@ -64,14 +64,14 @@ open class EventStoreRepositoryAdapter<T>(
         }
 
         // re-calculate current version from aggregate events
-        val eventVersion = aggregate
+        val currentVersion = aggregate
             .events
             .maxBy { event -> event.id.version }
             ?.id
             ?.version ?: -1
 
         // append dirty domain events to list on aggregate root starting from current version
-        for (i in eventVersion + 1 until entity.domainEvents.size) {
+        for (i in currentVersion + 1 until entity.domainEvents.size) {
 
             // serialize event to json
             val domainEvent = entity.domainEvents[i]
@@ -86,7 +86,7 @@ open class EventStoreRepositoryAdapter<T>(
         }
 
         // update current version on aggregate
-        aggregate.version = eventVersion + entity.domainEvents.size - (eventVersion + 1)
+        aggregate.currentVersion = currentVersion + entity.domainEvents.size - (currentVersion + 1)
 
         // save to event store
         eventStoreRepository.save(aggregate)
